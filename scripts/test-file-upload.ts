@@ -69,7 +69,7 @@ async function testFileUpload(testFile: TestFile): Promise<boolean> {
       body: formData,
     })
 
-    const result = await response.json()
+    const result = (await response.json()) as any
 
     if (response.ok) {
       console.log(`✅ Upload successful!`)
@@ -116,7 +116,9 @@ async function main() {
       console.log('⚠️ Server responded but with error status')
     }
   } catch (error) {
-    console.error('❌ Server is not available:', error.message)
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
+    console.error('❌ Server is not available:', errorMessage)
     console.log('💡 Make sure to run: npm run dev')
     process.exit(1)
   }

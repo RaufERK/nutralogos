@@ -31,7 +31,7 @@ async function testDatabase() {
     console.log('\n⚙️ Test 4: System settings table...')
     const settingsCount = db
       .prepare('SELECT COUNT(*) as count FROM system_settings')
-      .get()
+      .get() as { count: number } | undefined
     console.log('📊 System settings count:', settingsCount?.count)
 
     // Test 5: Insert test record
@@ -58,7 +58,7 @@ async function testDatabase() {
     console.log('\n🔍 Test 6: Querying test record...')
     const testRecord = db
       .prepare('SELECT * FROM files WHERE id = ?')
-      .get(testId)
+      .get(testId) as any
     if (testRecord) {
       console.log('✅ Test record found:', {
         id: testRecord.id,

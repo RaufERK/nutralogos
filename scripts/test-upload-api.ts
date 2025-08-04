@@ -53,7 +53,9 @@ class TestUploadAPI {
           console.log(`❌ ${fileName}: FAILED - ${result.error}`)
         }
       } catch (error) {
-        console.log(`💥 ${fileName}: ERROR - ${error.message}`)
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error'
+        console.log(`💥 ${fileName}: ERROR - ${errorMessage}`)
         results.push({
           fileName,
           format: 'unknown',

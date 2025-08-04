@@ -59,7 +59,9 @@ async function testDOCFiles() {
         console.log(`  ❌ Файл не является корректным DOC файлом`)
       }
     } catch (error) {
-      console.log(`  ❌ Ошибка чтения файла: ${error.message}`)
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error'
+      console.log(`  ❌ Ошибка чтения файла: ${errorMessage}`)
     }
 
     console.log()

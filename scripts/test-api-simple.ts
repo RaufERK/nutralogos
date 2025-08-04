@@ -27,9 +27,7 @@ async function testAPIEndpoints() {
     // Test 4: Check if server is running
     console.log('\n🖥️ Test 4: Server health...')
     try {
-      const healthResponse = await fetch(`${BASE_URL}/api/auth/session`, {
-        timeout: 5000,
-      })
+      const healthResponse = await fetch(`${BASE_URL}/api/auth/session`)
       if (healthResponse.ok) {
         console.log('✅ Server is healthy and responding')
       } else {
@@ -39,7 +37,9 @@ async function testAPIEndpoints() {
         )
       }
     } catch (error) {
-      console.error('❌ Server health check failed:', error.message)
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error'
+      console.error('❌ Server health check failed:', errorMessage)
     }
   } catch (error) {
     console.error('❌ API test failed:', error)

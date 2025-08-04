@@ -98,7 +98,7 @@ async function testFileUpload(fileName: string, format: string) {
       body: formData,
     })
 
-    const responseData = await response.json()
+    const responseData = (await response.json()) as any
 
     console.log(`   📊 Response status: ${response.status}`)
 
@@ -119,7 +119,9 @@ async function testFileUpload(fileName: string, format: string) {
       return false
     }
   } catch (error) {
-    console.log('   ❌ Request failed:', error.message)
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
+    console.log('   ❌ Request failed:', errorMessage)
     return false
   }
 }
@@ -140,7 +142,7 @@ async function testSupportedFormats() {
       body: formData,
     })
 
-    const responseData = await response.json()
+    const responseData = (await response.json()) as any
 
     if (
       response.status === 400 &&
@@ -159,7 +161,9 @@ async function testSupportedFormats() {
     // Clean up
     fs.unlinkSync(unsupportedFile)
   } catch (error) {
-    console.log('   ❌ Format test failed:', error.message)
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
+    console.log('   ❌ Format test failed:', errorMessage)
   }
 }
 
@@ -205,7 +209,9 @@ async function runMultiFormatTests() {
     fs.rmSync(TEST_FILES_DIR, { recursive: true, force: true })
     console.log('   ✅ Test files cleaned up')
   } catch (error) {
-    console.log('   ⚠️ Cleanup failed:', error.message)
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
+    console.log('   ⚠️ Cleanup failed:', errorMessage)
   }
 }
 

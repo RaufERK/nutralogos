@@ -82,7 +82,9 @@ async function testProcessor(testFile: TestFile): Promise<boolean> {
 
     return true
   } catch (error) {
-    console.error(`❌ Error testing ${testFile.name}:`, error.message)
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
+    console.error(`❌ Error testing ${testFile.name}:`, errorMessage)
     return false
   }
 }

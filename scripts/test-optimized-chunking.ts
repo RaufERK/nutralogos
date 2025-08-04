@@ -126,7 +126,9 @@ async function testChunkingComparison() {
 
         console.log('\n' + '='.repeat(80) + '\n')
       } catch (error) {
-        console.error(`❌ Error testing ${testFile}:`, error.message)
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error'
+        console.error(`❌ Error testing ${testFile}:`, errorMessage)
       }
     }
 

@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, rm, mkdir } from 'fs/promises'
+import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
-import { randomUUID } from 'crypto'
 import { documentProcessorFactory } from '@/lib/document-processors-clean'
-import { FileRepository } from '@/lib/file-repository'
-import { getEmbeddingVectors } from '@/lib/langchain/embeddings'
-import { addDocuments } from '@/lib/langchain/vectorstore'
-import { Document } from '@langchain/core/documents'
-import { ChunkingService } from '@/lib/chunking-service'
-import crypto from 'crypto'
+import {
+  calculateFileHash,
+  generateOriginalFilePath,
+  sanitizeFilename,
+  checkFileHashExists,
+  createFileMetadata,
+} from '@/lib/file-hash-utils'
+import { getDatabase } from '@/lib/database'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('📤 [UPLOAD] Processing file upload request')
+    console.log('📤 [UPLOAD STAGE 1] Processing file upload to library')
     const formData = await request.formData()
     const file = formData.get('file') as File
     const testMode = formData.get('testMode') as string
@@ -25,7 +26,16 @@ export async function POST(request: NextRequest) {
       `📁 [UPLOAD] File: ${file.name} (${file.size} bytes, ${file.type})`
     )
 
-    // Get processor
+    // Validate file size (max 100MB from settings)
+    const maxSizeMB = 100
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      return NextResponse.json(
+        { error: `File too large. Max size: ${maxSizeMB}MB` },
+        { status: 400 }
+      )
+    }
+
+    // Get processor to validate format
     const processor = documentProcessorFactory.getProcessor(
       file.name,
       file.type
@@ -43,153 +53,134 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`🔧 [UPLOAD] Using processor: ${processor.constructor.name}`)
+    console.log(`🔧 [UPLOAD] Format supported: ${processor.constructor.name}`)
 
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer())
 
-    // Validate file
+    // Validate file content
     if (!processor.validateFile(buffer)) {
       return NextResponse.json(
-        { error: 'File validation failed' },
+        { error: 'File validation failed - invalid content' },
         { status: 400 }
       )
     }
 
     // Calculate file hash for deduplication
-    const fileHash = crypto.createHash('sha256').update(buffer).digest('hex')
+    const fileHash = calculateFileHash(buffer)
+    console.log(`🔐 [UPLOAD] File hash: ${fileHash.slice(0, 12)}...`)
 
-    // Check if file already exists in database
-    const existingFile = await FileRepository.findByHash(fileHash)
-
-    if (existingFile) {
-      console.log(`📋 [UPLOAD] File already exists: ${existingFile.filename}`)
+    // Check if file already exists in database (STAGE 1 deduplication)
+    const fileExists = await checkFileHashExists(fileHash)
+    if (fileExists) {
+      console.log(`📋 [UPLOAD] File already in library: ${file.name}`)
       return NextResponse.json({
-        success: true,
-        message: 'File already exists in database',
-        fileId: existingFile.id,
-        filename: existingFile.filename,
-        existing: true,
+        success: false,
+        error: 'File already exists in library',
+        message: 'This file has already been uploaded to the library',
+        fileHash: fileHash.slice(0, 12) + '...',
+        duplicate: true,
       })
     }
 
-    // Extract text
-    const text = await processor.extractText('', buffer)
-    console.log(`📝 [UPLOAD] Extracted ${text.length} characters`)
-
-    if (!text || text.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'No text could be extracted from file' },
-        { status: 400 }
-      )
-    }
-
-    // If in test mode, still use optimized chunking for preview
+    // If in test mode, do quick text extraction for preview
     if (testMode === 'true') {
-      const chunks = await ChunkingService.splitText(text)
+      try {
+        const text = await processor.extractText('', buffer)
+        console.log(`📝 [TEST] Extracted ${text.length} characters`)
 
-      return NextResponse.json({
-        success: true,
-        filename: file.name,
-        size: file.size,
-        type: file.type,
-        processor: processor.constructor.name,
-        textLength: text.length,
-        chunksCount: chunks.length,
-        averageTokensPerChunk:
-          chunks.length > 0
-            ? Math.round(
-                chunks.reduce((sum, c) => sum + (c.tokenCount || 0), 0) /
-                  chunks.length
-              )
-            : 0,
-        preview: text.substring(0, 200) + (text.length > 200 ? '...' : ''),
-        testMode: true,
-        hash: fileHash,
-      })
+        return NextResponse.json({
+          success: true,
+          filename: file.name,
+          size: file.size,
+          type: file.type,
+          processor: processor.constructor.name,
+          textLength: text.length,
+          preview: text.substring(0, 500) + (text.length > 500 ? '...' : ''),
+          testMode: true,
+          fileHash: fileHash.slice(0, 12) + '...',
+          message: 'Test mode - file not saved',
+        })
+      } catch {
+        return NextResponse.json(
+          { error: 'Could not extract text for preview' },
+          { status: 400 }
+        )
+      }
     }
 
-    // Save file to database
-    const fileId = await FileRepository.createFile({
-      filename: file.name,
-      original_name: file.name,
-      file_hash: fileHash,
-      file_size: file.size,
-      mime_type: file.type,
-      metadata: {
-        textContent: text,
-        status: 'processing',
-      },
-    })
-
-    console.log(`💾 [UPLOAD] Saved file to database: ID ${fileId}`)
-
+    // STAGE 1: Save original file to library
     try {
-      // Split text into optimized chunks
-      console.log(`📝 [UPLOAD] Splitting text into optimized chunks...`)
-      const chunks = await ChunkingService.splitText(text)
-      console.log(`✅ [UPLOAD] Created ${chunks.length} optimized chunks`)
+      // Sanitize filename for safe storage
+      const sanitizedFilename = sanitizeFilename(file.name)
 
-      // Generate embeddings for each chunk
-      console.log(
-        `🔗 [UPLOAD] Generating embeddings for ${chunks.length} chunks...`
-      )
-      const startTime = Date.now()
+      // Generate storage path with date folder
+      const storagePath = generateOriginalFilePath(sanitizedFilename)
+      const fullPath = join(process.cwd(), storagePath)
 
-      const documents = chunks.map(
-        (chunk, index) =>
-          new Document({
-            pageContent: chunk.content,
-            metadata: {
-              fileId: fileId,
-              filename: file.name,
-              mimeType: file.type,
-              size: file.size,
-              hash: fileHash,
-              chunkIndex: chunk.index,
-              chunkStart: chunk.start,
-              chunkEnd: chunk.end,
-              tokenCount: chunk.tokenCount,
-              uploadedAt: new Date().toISOString(),
-            },
-          })
+      // Create directory if it doesn't exist
+      await mkdir(
+        join(
+          process.cwd(),
+          'uploads',
+          'original',
+          new Date().toISOString().split('T')[0]
+        ),
+        { recursive: true }
       )
 
-      // Add all documents to vector store
-      await addDocuments(documents)
+      // Save original file
+      await writeFile(fullPath, buffer)
+      console.log(`💾 [UPLOAD] Saved original file: ${storagePath}`)
 
-      const embeddingTime = Date.now() - startTime
-      console.log(
-        `🗄️ [UPLOAD] Added ${documents.length} documents to vector store in ${embeddingTime}ms`
-      )
+      // Create metadata
+      const metadata = createFileMetadata(fileHash, file.name, file.size, {
+        original_format: file.name.split('.').pop()?.toLowerCase() || 'unknown',
+      })
 
-      // Note: FileRepository doesn't have update method, so we skip status update for now
+      // Save to database with status 'original_uploaded'
+      const db = await getDatabase()
+      const result = db
+        .prepare(
+          `
+        INSERT INTO processed_files (
+          file_hash, original_filename, file_size, mime_type,
+          processing_status, storage_path, metadata_json, uploaded_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `
+        )
+        .run(
+          fileHash,
+          file.name,
+          file.size,
+          file.type,
+          'original_uploaded',
+          storagePath,
+          JSON.stringify(metadata),
+          new Date().toISOString()
+        )
+
+      const fileId = result.lastInsertRowid
+      console.log(`✅ [UPLOAD] File added to library: ID ${fileId}`)
 
       return NextResponse.json({
         success: true,
-        message: 'File uploaded and processed successfully',
+        message: 'File successfully added to library',
+        stage: 'original_uploaded',
         fileId: fileId,
         filename: file.name,
         size: file.size,
-        textLength: text.length,
-        chunksCount: chunks.length,
-        averageTokensPerChunk: Math.round(
-          chunks.reduce((sum, c) => sum + (c.tokenCount || 0), 0) /
-            chunks.length
-        ),
-        embeddingTime: embeddingTime,
+        fileHash: fileHash.slice(0, 12) + '...',
+        storagePath: storagePath,
         processor: processor.constructor.name,
+        nextStep: 'Use "Sync with Vector DB" button to process for search',
       })
-    } catch (embeddingError) {
-      console.error('❌ [UPLOAD] Embedding error:', embeddingError)
-
-      // Note: FileRepository doesn't have update method, so we skip status update for now
-
+    } catch (storageError) {
+      console.error('❌ [UPLOAD] Storage error:', storageError)
       return NextResponse.json(
         {
-          error: 'File uploaded but embedding failed',
-          details: embeddingError.message,
-          fileId: fileId,
+          error: 'Failed to save file to library',
+          details: storageError.message,
         },
         { status: 500 }
       )

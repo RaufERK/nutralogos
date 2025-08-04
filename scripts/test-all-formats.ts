@@ -65,7 +65,7 @@ async function testFormat(testFile: TestFile): Promise<boolean> {
     console.log(`📊 Status: ${response.status} ${response.statusText}`)
 
     if (response.ok) {
-      const result = await response.json()
+      const result = (await response.json()) as any
 
       if (result.existing) {
         console.log(`✅ Success! File already exists in database`)
@@ -93,7 +93,9 @@ async function testFormat(testFile: TestFile): Promise<boolean> {
       return false
     }
   } catch (error) {
-    console.error(`❌ Error testing ${testFile.format}:`, error.message)
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
+    console.error(`❌ Error testing ${testFile.format}:`, errorMessage)
     return false
   }
 }

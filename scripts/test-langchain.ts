@@ -18,9 +18,15 @@ async function testLangChainIntegration() {
   console.log('1️⃣ Testing LLM Connection...')
   try {
     const llmWorking = await testLLMConnection()
-    console.log(`   ${llmWorking ? '✅' : '❌'} LLM Connection: ${llmWorking ? 'OK' : 'FAILED'}\n`)
+    console.log(
+      `   ${llmWorking ? '✅' : '❌'} LLM Connection: ${
+        llmWorking ? 'OK' : 'FAILED'
+      }\n`
+    )
   } catch (error) {
-    console.error('   ❌ LLM Connection Error:', error.message)
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
+    console.error('   ❌ LLM Connection Error:', errorMessage)
   }
 
   // Test 2: Embeddings
@@ -29,9 +35,16 @@ async function testLangChainIntegration() {
     const testText = 'Что такое духовность?'
     const embedding = await getEmbeddingVector(testText)
     console.log(`   ✅ Embedding Vector: ${embedding.length} dimensions`)
-    console.log(`   📊 Sample values: [${embedding.slice(0, 3).map(n => n.toFixed(4)).join(', ')}...]\n`)
+    console.log(
+      `   📊 Sample values: [${embedding
+        .slice(0, 3)
+        .map((n) => n.toFixed(4))
+        .join(', ')}...]\n`
+    )
   } catch (error) {
-    console.error('   ❌ Embeddings Error:', error.message)
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
+    console.error('   ❌ Embeddings Error:', errorMessage)
   }
 
   // Test 3: Enhanced RAG Chain
@@ -39,21 +52,28 @@ async function testLangChainIntegration() {
   try {
     const ragChain = createEnhancedRAGChain()
     const testQuery = 'Что такое медитация?'
-    
+
     console.log(`   🔍 Query: "${testQuery}"`)
     const result = await ragChain.call({ query: testQuery })
-    
+
     console.log(`   ✅ Response received: ${result.text.length} characters`)
     console.log(`   📚 Sources found: ${result.sourceDocuments.length}`)
-    console.log(`   🎯 Relevance scores: [${result.relevanceScores.map(s => s.toFixed(2)).join(', ')}]`)
-    
+    console.log(
+      `   🎯 Relevance scores: [${result.relevanceScores
+        .map((s) => s.toFixed(2))
+        .join(', ')}]`
+    )
+
     if (result.text.length > 0) {
-      console.log(`   📝 Sample response: "${result.text.substring(0, 100)}..."`)
+      console.log(
+        `   📝 Sample response: "${result.text.substring(0, 100)}..."`
+      )
     }
-    
   } catch (error) {
-    console.error('   ❌ RAG Chain Error:', error.message)
-    if (error.message.includes('QDRANT')) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
+    console.error('   ❌ RAG Chain Error:', errorMessage)
+    if (errorMessage.includes('QDRANT')) {
       console.log('   💡 Hint: Make sure Qdrant is configured and has data')
     }
   }
