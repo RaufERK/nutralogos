@@ -194,8 +194,8 @@ async function processSingleFile(file: any) {
     // 6. Содержимое уникально - продолжаем обработку
     console.log(`✨ [SYNC] Unique content, creating embedding...`)
 
-    // 7. Генерируем пути для txt файла и метаданных
-    const { txtPath, metaPath, folder } = generateTxtFilePaths(txtHash)
+    // 7. Генерируем путь для txt файла (без метаданных)
+    const { txtPath, folder } = generateTxtFilePaths(txtHash)
 
     // Создаем папку
     await mkdir(join(process.cwd(), folder), { recursive: true })
@@ -205,27 +205,13 @@ async function processSingleFile(file: any) {
     await writeFile(fullTxtPath, text, 'utf8')
     console.log(`💾 [SYNC] Saved txt: ${txtPath}`)
 
-    // 9. Создаем и сохраняем метаданные
-    const metadata: FileMetadata = {
-      file_hash: fileHash,
-      txt_hash: txtHash,
-      original_filename: originalFilename,
-      original_format:
-        originalFilename.split('.').pop()?.toLowerCase() || 'unknown',
-      upload_date: file.uploaded_at,
-      file_size: file.file_size,
-      text_length: text.length,
-      language: 'ru',
-      processing_time: 0, // будет обновлено ниже
-    }
-
     const startTime = Date.now()
 
-    // 10. Создаем чанки для эмбеддинга
+    // 9. Создаем чанки для эмбеддинга
     const chunks = await ChunkingService.splitText(text)
     console.log(`📋 [SYNC] Created ${chunks.length} chunks`)
 
-    // 11. Создаем документы для векторной БД
+    // 10. Создаем документы для векторной БД
     const documents = chunks.map(
       (chunk, index) =>
         new Document({
@@ -247,7 +233,7 @@ async function processSingleFile(file: any) {
         })
     )
 
-    // 12. Добавляем в векторную БД
+    // 11. Добавляем в векторную БД
     await addDocuments(documents)
 
     const processingTime = Date.now() - startTime
@@ -255,15 +241,24 @@ async function processSingleFile(file: any) {
       `🗄️ [SYNC] Added ${documents.length} documents to vector store in ${processingTime}ms`
     )
 
-    // 13. Обновляем метаданные с временем обработки
-    metadata.processing_time = processingTime
-    metadata.chunks_created = chunks.length
+    // 12. Создаем метаданные для сохранения в БД (не в файл!)
+    const metadata = {
+      file_hash: fileHash,
+      txt_hash: txtHash,
+      original_filename: originalFilename,
+      original_format:
+        originalFilename.split('.').pop()?.toLowerCase() || 'unknown',
+      upload_date: file.uploaded_at,
+      file_size: file.file_size,
+      text_length: text.length,
+      language: 'ru',
+      processing_time: processingTime,
+      chunks_created: chunks.length,
+    }
 
-    // 14. Сохраняем метаданные
-    await saveMetadataFile(join(process.cwd(), metaPath), metadata)
-    console.log(`📋 [SYNC] Saved metadata: ${metaPath}`)
+    console.log(`📋 [SYNC] Metadata prepared for DB storage (no .meta.json)`)
 
-    // 15. Обновляем статус в БД
+    // 13. Обновляем статус в БД со всеми метаданными
     const db = await getDatabase()
     db.prepare(
       `
@@ -271,21 +266,25 @@ async function processSingleFile(file: any) {
       SET processing_status = 'embedded',
           txt_hash = ?,
           txt_path = ?,
-          meta_path = ?,
+          text_length = ?,
+          language = ?,
+          chunks_created = ?,
+          processing_time_ms = ?,
           embedded_at = ?,
           processed_at = ?,
-          chunks_created = ?,
-          processing_time_ms = ?
+          metadata_json = ?
       WHERE id = ?
     `
     ).run(
       txtHash,
       txtPath,
-      metaPath,
-      new Date().toISOString(),
-      new Date().toISOString(),
+      text.length,
+      'ru',
       chunks.length,
       processingTime,
+      new Date().toISOString(),
+      new Date().toISOString(),
+      JSON.stringify(metadata),
       fileId
     )
 
@@ -301,7 +300,7 @@ async function processSingleFile(file: any) {
       chunksCreated: chunks.length,
       processingTime,
       txtPath,
-      metaPath,
+      savedToDatabase: true,
     }
   } catch (error) {
     console.error(`❌ [SYNC] Error processing ${originalFilename}:`, error)

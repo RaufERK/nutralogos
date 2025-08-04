@@ -67,29 +67,33 @@ export function getHashPrefix(hash: string): string {
 
 /**
  * Генерирует путь для хранения оригинального файла
- * Формат: /uploads/original/YYYY-MM-DD/filename
+ * Формат: /uploads/original/YYYY-MM-DD_HH-MM/filename
+ * Включает время для предотвращения перезаписи файлов с одинаковыми именами
  */
 export function generateOriginalFilePath(filename: string): string {
-  const today = new Date()
-  const dateFolder = today.toISOString().split('T')[0] // YYYY-MM-DD
-  return join('uploads', 'original', dateFolder, filename)
+  const now = new Date()
+  const date = now.toISOString().split('T')[0] // YYYY-MM-DD
+  const time = now.toTimeString().split(' ')[0].slice(0, 5).replace(':', '-') // HH-MM
+  const dateTimeFolder = `${date}_${time}`
+  return join('uploads', 'original', dateTimeFolder, filename)
 }
 
 /**
- * Генерирует пути для txt файла и метаданных на основе txt_hash
- * Возвращает объект с путями к txt и meta файлам
+ * Генерирует путь для txt файла на основе txt_hash и времени
+ * Группирует файлы по времени как оригинальные файлы (удобнее для управления)
  */
 export function generateTxtFilePaths(txtHash: string): {
   txtPath: string
-  metaPath: string
   folder: string
 } {
-  const prefix = getHashPrefix(txtHash)
-  const folder = join('uploads', 'txt', prefix)
+  const now = new Date()
+  const date = now.toISOString().split('T')[0] // YYYY-MM-DD
+  const time = now.toTimeString().split(' ')[0].slice(0, 5).replace(':', '-') // HH-MM
+  const dateTimeFolder = `${date}_${time}`
+  const folder = join('uploads', 'txt', dateTimeFolder)
 
   return {
     txtPath: join(folder, `${txtHash}.txt`),
-    metaPath: join(folder, `${txtHash}.meta.json`),
     folder,
   }
 }

@@ -129,23 +129,38 @@ async function initializeTables() {
     CREATE TABLE IF NOT EXISTS processed_files (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       file_hash TEXT UNIQUE NOT NULL,           -- SHA-256 хеш файла
+      txt_hash TEXT,                            -- SHA-256 хеш текстового содержимого
       original_filename TEXT NOT NULL,          -- Оригинальное имя файла
+      original_format TEXT NOT NULL,            -- Формат файла (расширение)
       file_size INTEGER NOT NULL,               -- Размер в байтах
       mime_type TEXT NOT NULL,                  -- MIME тип файла
-      processing_status TEXT DEFAULT 'pending', -- 'pending', 'processing', 'completed', 'failed'
       
-      -- Метаданные обработки
+      -- Статусы: 'original_uploaded', 'txt_ready', 'embedded', 'duplicate_content', 'failed'
+      processing_status TEXT DEFAULT 'original_uploaded',
+      
+      -- Пути к файлам
+      storage_path TEXT NOT NULL,               -- Путь к оригинальному файлу
+      txt_path TEXT,                            -- Путь к txt файлу
+      meta_path TEXT,                           -- Путь к метаданным (будет удален)
+      
+      -- Метаданные содержимого
+      text_length INTEGER,                      -- Длина текста в символах
+      language TEXT DEFAULT 'ru',               -- Язык документа
       chunks_created INTEGER DEFAULT 0,         -- Количество созданных chunks
-      embeddings_created INTEGER DEFAULT 0,     -- Количество эмбеддингов
       processing_time_ms INTEGER,               -- Время обработки в миллисекундах
+      
+      -- Сообщения об ошибках
       error_message TEXT,                       -- Сообщение об ошибке, если есть
+      
+      -- Временные метки
+      uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      processed_at DATETIME,                    -- Когда завершена обработка txt
+      embedded_at DATETIME,                     -- Когда создан эмбеддинг
       
       -- Аудит
       uploaded_by INTEGER REFERENCES users(id), -- Кто загрузил
-      uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      processed_at DATETIME,                    -- Когда завершена обработка
       
-      -- Дополнительные метаданные
+      -- Дополнительные метаданные (JSON)
       metadata_json TEXT                        -- JSON с дополнительными данными
     )
   `)
@@ -175,8 +190,10 @@ async function initializeTables() {
     CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
     CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
     CREATE INDEX IF NOT EXISTS idx_processed_files_hash ON processed_files(file_hash);
+    CREATE INDEX IF NOT EXISTS idx_processed_files_txt_hash ON processed_files(txt_hash);
     CREATE INDEX IF NOT EXISTS idx_processed_files_status ON processed_files(processing_status);
     CREATE INDEX IF NOT EXISTS idx_processed_files_uploaded_by ON processed_files(uploaded_by);
+    CREATE INDEX IF NOT EXISTS idx_processed_files_format ON processed_files(original_format);
     CREATE INDEX IF NOT EXISTS idx_file_chunks_file_id ON file_chunks(processed_file_id);
     CREATE INDEX IF NOT EXISTS idx_file_chunks_qdrant_id ON file_chunks(qdrant_point_id);
   `)

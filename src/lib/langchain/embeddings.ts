@@ -86,7 +86,11 @@ export async function getEmbeddingVectors(
   texts: string[]
 ): Promise<number[][]> {
   try {
+    const startTime = Date.now()
     console.log(`🔗 [EMBEDDINGS] Getting embeddings for ${texts.length} texts`)
+    console.log(
+      `🔗 [EMBEDDINGS] =============== STARTING EMBEDDING PROCESS ===============`
+    )
 
     // Process in smaller batches to prevent overload
     const batchSize = 5 // Very small batch size for stability
@@ -94,10 +98,11 @@ export async function getEmbeddingVectors(
 
     for (let i = 0; i < texts.length; i += batchSize) {
       const batch = texts.slice(i, i + batchSize)
+      const batchStartTime = Date.now()
       console.log(
         `📦 [EMBEDDINGS] Processing batch ${
           Math.floor(i / batchSize) + 1
-        }/${Math.ceil(texts.length / batchSize)}`
+        }/${Math.ceil(texts.length / batchSize)} (${batch.length} texts)`
       )
 
       // Rate limiting between batches
@@ -113,14 +118,21 @@ export async function getEmbeddingVectors(
       const batchResults = response.data.map((item) => item.embedding)
       results.push(...batchResults)
 
+      const batchTime = Date.now() - batchStartTime
+      console.log(`✅ [EMBEDDINGS] Batch completed in ${batchTime}ms`)
+
       // Force garbage collection hint
       if (global.gc) {
         global.gc()
       }
     }
 
+    const totalTime = Date.now() - startTime
     console.log(
-      `✅ [EMBEDDINGS] Successfully generated ${results.length} embeddings`
+      `🎉 [EMBEDDINGS] =============== EMBEDDING COMPLETED ===============`
+    )
+    console.log(
+      `✅ [EMBEDDINGS] Successfully generated ${results.length} embeddings in ${totalTime}ms`
     )
     return results
   } catch (error) {

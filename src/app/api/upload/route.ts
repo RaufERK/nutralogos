@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Calculate file hash for deduplication
+    // Calculate file hash for deduplication BEFORE saving
     const fileHash = calculateFileHash(buffer)
     console.log(`🔐 [UPLOAD] File hash: ${fileHash.slice(0, 12)}...`)
 
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // STAGE 1: Save original file to library
+    // STAGE 1: Save original file to library (только после проверки дедупликации)
     try {
       // Sanitize filename for safe storage
       const sanitizedFilename = sanitizeFilename(file.name)
@@ -119,15 +119,18 @@ export async function POST(request: NextRequest) {
       const fullPath = join(process.cwd(), storagePath)
 
       // Create directory if it doesn't exist
-      await mkdir(
-        join(
-          process.cwd(),
-          'uploads',
-          'original',
-          new Date().toISOString().split('T')[0]
-        ),
-        { recursive: true }
-      )
+      const now = new Date()
+      const date = now.toISOString().split('T')[0] // YYYY-MM-DD
+      const time = now
+        .toTimeString()
+        .split(' ')[0]
+        .slice(0, 5)
+        .replace(':', '-') // HH-MM
+      const dateTimeFolder = `${date}_${time}`
+
+      await mkdir(join(process.cwd(), 'uploads', 'original', dateTimeFolder), {
+        recursive: true,
+      })
 
       // Save original file
       await writeFile(fullPath, buffer)
@@ -144,14 +147,15 @@ export async function POST(request: NextRequest) {
         .prepare(
           `
         INSERT INTO processed_files (
-          file_hash, original_filename, file_size, mime_type,
+          file_hash, original_filename, original_format, file_size, mime_type,
           processing_status, storage_path, metadata_json, uploaded_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
         )
         .run(
           fileHash,
           file.name,
+          file.name.split('.').pop()?.toLowerCase() || 'unknown',
           file.size,
           file.type,
           'original_uploaded',
