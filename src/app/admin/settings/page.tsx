@@ -217,48 +217,44 @@ export default function SettingsPage() {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'ai':
-        return '🤖'
-      case 'search':
+      case 'AI_Model_and_Response_Generation':
+        return '🧠'
+      case 'RAG_Embedding_and_Chunking':
+        return '📖'
+      case 'Retrieval_Settings':
         return '🔍'
-      case 'content':
-        return '📝'
-      case 'security':
-        return '🔒'
-      case 'system':
-        return '💻'
-      default:
+      case 'System_and_Limits':
         return '⚙️'
+      default:
+        return '💻'
     }
   }
 
   const getCategoryTitle = (category: string) => {
     switch (category) {
-      case 'ai':
-        return 'AI Model Settings'
-      case 'search':
-        return 'Search & Retrieval'
-      case 'content':
-        return 'Content Settings'
-      case 'security':
-        return 'Security & Limits'
-      case 'system':
-        return 'System Configuration'
+      case 'AI_Model_and_Response_Generation':
+        return '🧠 AI Модель и генерация ответов'
+      case 'RAG_Embedding_and_Chunking':
+        return '📖 RAG: Подготовка и индексация'
+      case 'Retrieval_Settings':
+        return '🔍 Поиск и подбор контекста'
+      case 'System_and_Limits':
+        return '⚙️ Система и лимиты'
       default:
         return category.charAt(0).toUpperCase() + category.slice(1)
     }
   }
 
-  const getCategoryBgColor = (category: string, index: number) => {
-    const colors = [
-      'bg-blue-900/90', // Темно-синий с прозрачностью 90%
-      'bg-slate-800/90', // Темно-серый с прозрачностью 90%
-      'bg-green-800/90', // Темно-зеленый с прозрачностью 90%
-      'bg-red-900/90', // Темно-бордовый с прозрачностью 90%
-      'bg-purple-900/90', // Темно-фиолетовый с прозрачностью 90%
-      'bg-indigo-900/90', // Темно-индиго с прозрачностью 90%
-    ]
-    return colors[index % colors.length]
+  const getCategoryBgColor = (category: string) => {
+    // Закрепляем цвета за конкретными категориями для логичности
+    const colorMap: Record<string, string> = {
+      AI_Model_and_Response_Generation: 'bg-purple-900/90', // Фиолетовый для AI
+      RAG_Embedding_and_Chunking: 'bg-blue-900/90', // Синий для подготовки данных
+      Retrieval_Settings: 'bg-teal-800/90', // Бирюзовый для поиска
+      System_and_Limits: 'bg-emerald-800/90', // Изумрудный для системы
+    }
+
+    return colorMap[category] || 'bg-indigo-900/90'
   }
 
   if (loading) {
@@ -291,13 +287,10 @@ export default function SettingsPage() {
       )}
 
       {/* Settings by Category */}
-      {Object.entries(settings).map(([category, categorySettings], index) => (
+      {Object.entries(settings).map(([category, categorySettings]) => (
         <div
           key={category}
-          className={`${getCategoryBgColor(
-            category,
-            index
-          )} rounded-lg shadow p-6`}
+          className={`${getCategoryBgColor(category)} rounded-lg shadow p-6`}
         >
           <div className='flex items-center mb-6'>
             <span className='text-2xl mr-3'>{getCategoryIcon(category)}</span>
@@ -357,7 +350,7 @@ export default function SettingsPage() {
                             handleSave(
                               setting.parameter_name,
                               formData[setting.parameter_name] ||
-                        rameter_value
+                                setting.parameter_value
                             )
                           }
                           disabled={saving || setting.is_readonly}
