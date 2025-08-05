@@ -223,6 +223,8 @@ export default function SettingsPage() {
         return '🔍'
       case 'System_and_Limits':
         return '⚙️'
+      case 'Chat_Context_Settings':
+        return '💬'
       default:
         return '💻'
     }
@@ -238,6 +240,8 @@ export default function SettingsPage() {
         return 'Поиск и подбор контекста'
       case 'System_and_Limits':
         return 'Система и лимиты'
+      case 'Chat_Context_Settings':
+        return 'Настройки контекста чата'
       default:
         return category.charAt(0).toUpperCase() + category.slice(1)
     }
@@ -250,9 +254,10 @@ export default function SettingsPage() {
       RAG_Embedding_and_Chunking: 'bg-blue-900/90', // Синий для подготовки данных
       Retrieval_Settings: 'bg-teal-800/90', // Бирюзовый для поиска
       System_and_Limits: 'bg-emerald-800/90', // Изумрудный для системы
+      Chat_Context_Settings: 'bg-indigo-900/90', // Индиго для чата
     }
 
-    return colorMap[category] || 'bg-indigo-900/90'
+    return colorMap[category] || 'bg-gray-900/90'
   }
 
   if (loading) {

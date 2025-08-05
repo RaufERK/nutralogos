@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createEnhancedRAGChain } from '@/lib/langchain/rag-chain'
 import { AskRequest, AskResponse, Document } from '@/lib/types'
+import { SettingsService } from '@/lib/settings-service'
+import { ChatMessage } from '@/lib/chat-context'
 
 export async function POST(request: NextRequest) {
   try {
-    const body: AskRequest = await request.json()
-    const { question } = body
+    const body = await request.json()
+    const { question, context }: { question: string; context?: ChatMessage[] } =
+      body
 
     if (!question || typeof question !== 'string') {
       return NextResponse.json(
@@ -15,6 +18,37 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('🦜 Using LangChain Enhanced RAG Chain for query:', question)
+
+    // Проверяем настройки контекста
+    const contextEnabled = await SettingsService.getSetting('context_enabled')
+    const contextEnabledValue = contextEnabled?.parameter_value === 'true'
+
+    // Формируем финальный запрос с учетом контекста
+    let finalQuery = question
+    let hasContextInfo = false
+
+    if (contextEnabledValue && context && context.length > 0) {
+      console.log(`📝 Используем контекст из ${context.length} сообщений`)
+
+      // Формируем строку контекста
+      const contextString = context
+        .map(
+          (msg) =>
+            `${msg.role === 'user' ? 'Пользователь' : 'Ассистент'}: ${
+              msg.content
+            }`
+        )
+        .join('\n')
+
+      finalQuery = `Контекст предыдущего разговора:
+${contextString}
+
+Текущий вопрос: ${question}
+
+Пожалуйста, ответь на текущий вопрос, учитывая контекст предыдущего разговора. Если вопрос связан с предыдущими сообщениями, используй эту информацию для более точного ответа.`
+
+      hasContextInfo = true
+    }
 
     // 1. Create enhanced RAG chain instance
     const ragChain = createEnhancedRAGChain()
@@ -30,10 +64,14 @@ export async function POST(request: NextRequest) {
 
     try {
       console.log('🔍 Processing query with LangChain RAG...')
-      ragResult = await ragChain.call({ query: question })
+      ragResult = await ragChain.call({ query: finalQuery })
       console.log(
         `📊 Found ${ragResult.sourceDocuments.length} relevant documents`
       )
+
+      if (hasContextInfo) {
+        console.log('✅ Ответ сгенерирован с учетом контекста разговора')
+      }
     } catch (chainError) {
       console.error('❌ RAG Chain error:', chainError)
       hasQdrantError = true
@@ -71,7 +109,7 @@ export async function POST(request: NextRequest) {
     const response: AskResponse = {
       answer: ragResult.text,
       sources: sources.length > 0 ? sources : undefined,
-      hasContext: sources.length > 0,
+      hasContext: sources.length > 0 || hasContextInfo, // Учитываем и RAG контекст и контекст разговора
       sourcesCount: sources.length,
       searchScore:
         sources.length > 0
