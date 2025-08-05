@@ -96,9 +96,7 @@ export default function SettingsPage() {
   }
 
   const handleReset = async (setting: SystemSetting) => {
-    if (confirm(`Reset "${setting.display_name}" to default value?`)) {
-      await handleSave(setting.parameter_name, setting.default_value)
-    }
+    await handleSave(setting.parameter_name, setting.default_value)
   }
 
   const renderSettingInput = (setting: SystemSetting) => {
@@ -233,13 +231,13 @@ export default function SettingsPage() {
   const getCategoryTitle = (category: string) => {
     switch (category) {
       case 'AI_Model_and_Response_Generation':
-        return '🧠 AI Модель и генерация ответов'
+        return 'AI Модель и генерация ответов'
       case 'RAG_Embedding_and_Chunking':
-        return '📖 RAG: Подготовка и индексация'
+        return 'RAG: Подготовка и индексация'
       case 'Retrieval_Settings':
-        return '🔍 Поиск и подбор контекста'
+        return 'Поиск и подбор контекста'
       case 'System_and_Limits':
-        return '⚙️ Система и лимиты'
+        return 'Система и лимиты'
       default:
         return category.charAt(0).toUpperCase() + category.slice(1)
     }
