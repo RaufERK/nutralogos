@@ -16,7 +16,6 @@ export default function UploadPage() {
   const [files, setFiles] = useState<UploadFile[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-  const router = useRouter()
 
   const generateId = () => Math.random().toString(36).substr(2, 9)
 

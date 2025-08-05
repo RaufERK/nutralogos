@@ -341,6 +341,62 @@ async function initializeDefaultSettings() {
       ui_options: JSON.stringify({ type: 'number', min: 1, max: 100 }),
       ui_order: 2,
     },
+
+    // System Settings
+    {
+      category: 'system',
+      parameter_name: 'use_mock',
+      parameter_value: 'false',
+      default_value: 'false',
+      parameter_type: 'boolean',
+      display_name: 'Use Mock Mode',
+      description: 'Включить мок-режим для разработки',
+      help_text:
+        'При включении использует фиктивные ответы вместо реальных API',
+      ui_component: 'toggle',
+      ui_order: 1,
+    },
+    {
+      category: 'system',
+      parameter_name: 'chunk_size',
+      parameter_value: '1000',
+      default_value: '1000',
+      parameter_type: 'number',
+      display_name: 'Chunk Size',
+      description: 'Размер фрагмента текста для обработки',
+      help_text:
+        'Количество символов в одном фрагменте при разбиении документов',
+      ui_component: 'input',
+      ui_options: JSON.stringify({ type: 'number', min: 100, max: 5000 }),
+      ui_order: 2,
+    },
+    {
+      category: 'system',
+      parameter_name: 'chunk_overlap',
+      parameter_value: '200',
+      default_value: '200',
+      parameter_type: 'number',
+      display_name: 'Chunk Overlap',
+      description: 'Перекрытие между фрагментами текста',
+      help_text: 'Количество символов перекрытия между соседними фрагментами',
+      ui_component: 'input',
+      ui_options: JSON.stringify({ type: 'number', min: 0, max: 1000 }),
+      ui_order: 3,
+    },
+    {
+      category: 'system',
+      parameter_name: 'system_prompt',
+      parameter_value:
+        'Ты — мудрый и сочувствующий духовный ассистент, специализирующийся на вопросах духовности, саморазвития и метафизики.',
+      default_value:
+        'Ты — мудрый и сочувствующий духовный ассистент, специализирующийся на вопросах духовности, саморазвития и метафизики.',
+      parameter_type: 'string',
+      display_name: 'System Prompt',
+      description: 'Системный промпт для AI ассистента',
+      help_text: 'Базовые инструкции которые определяют поведение AI',
+      ui_component: 'textarea',
+      ui_order: 4,
+    },
   ]
 
   for (const setting of defaultSettings) {

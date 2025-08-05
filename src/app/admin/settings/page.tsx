@@ -36,8 +36,10 @@ export default function SettingsPage() {
       const initialFormData: SettingsFormData = {}
       Object.values(data.settings)
         .flat()
-        .forEach((setting: SystemSetting) => {
-          initialFormData[setting.parameter_name] = setting.parameter_value
+        .forEach((setting) => {
+          const typedSetting = setting as SystemSetting
+          initialFormData[typedSetting.parameter_name] =
+            typedSetting.parameter_value
         })
       setFormData(initialFormData)
     } catch (error) {
@@ -111,11 +113,15 @@ export default function SettingsPage() {
             onChange={(e) =>
               handleInputChange(setting.parameter_name, e.target.value)
             }
-            className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            className='w-full px-3 py-2 bg-gray-600 text-white border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
             disabled={setting.is_readonly}
           >
             {options.map((option: string) => (
-              <option key={option} value={option}>
+              <option
+                key={option}
+                value={option}
+                className='bg-gray-600 text-white'
+              >
                 {option}
               </option>
             ))}
@@ -140,7 +146,7 @@ export default function SettingsPage() {
               className='w-full'
               disabled={setting.is_readonly}
             />
-            <div className='text-sm text-gray-600'>
+            <div className='text-sm text-white'>
               {value} {sliderOptions.unit || ''}
             </div>
           </div>
@@ -183,7 +189,7 @@ export default function SettingsPage() {
               handleInputChange(setting.parameter_name, e.target.value)
             }
             rows={4}
-            className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            className='w-full px-3 py-2 bg-gray-600 text-white border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
             disabled={setting.is_readonly}
           />
         )
@@ -202,7 +208,7 @@ export default function SettingsPage() {
             min={inputOptions.min}
             max={inputOptions.max}
             step={inputOptions.step}
-            className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            className='w-full px-3 py-2 bg-gray-600 text-white border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400'
             disabled={setting.is_readonly}
           />
         )
@@ -219,6 +225,8 @@ export default function SettingsPage() {
         return '📝'
       case 'security':
         return '🔒'
+      case 'system':
+        return '💻'
       default:
         return '⚙️'
     }
@@ -234,6 +242,8 @@ export default function SettingsPage() {
         return 'Content Settings'
       case 'security':
         return 'Security & Limits'
+      case 'system':
+        return 'System Configuration'
       default:
         return category.charAt(0).toUpperCase() + category.slice(1)
     }
@@ -241,10 +251,12 @@ export default function SettingsPage() {
 
   const getCategoryBgColor = (category: string, index: number) => {
     const colors = [
-      'bg-gray-800', // Темно-серый
-      'bg-slate-800', // Немного синеватый серый
-      'bg-zinc-800', // Немного теплее серый
-      'bg-neutral-800', // Нейтральный серый
+      'bg-blue-900/90', // Темно-синий с прозрачностью 90%
+      'bg-slate-800/90', // Темно-серый с прозрачностью 90%
+      'bg-green-800/90', // Темно-зеленый с прозрачностью 90%
+      'bg-red-900/90', // Темно-бордовый с прозрачностью 90%
+      'bg-purple-900/90', // Темно-фиолетовый с прозрачностью 90%
+      'bg-indigo-900/90', // Темно-индиго с прозрачностью 90%
     ]
     return colors[index % colors.length]
   }
@@ -294,78 +306,162 @@ export default function SettingsPage() {
             </h2>
           </div>
 
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {categorySettings.map((setting) => (
-              <div
-                key={setting.parameter_name}
-                className='bg-gray-700/50 rounded-lg p-4 border border-gray-600'
-              >
-                <div className='space-y-3'>
-                  <div className='flex items-start justify-between'>
-                    <div className='flex-1'>
+          <div className='space-y-6'>
+            {/* Полноширинные настройки (textarea) */}
+            {categorySettings
+              .filter((setting) => setting.ui_component === 'textarea')
+              .map((setting) => (
+                <div
+                  key={setting.parameter_name}
+                  className='bg-gray-700/50 rounded-lg p-4 border border-gray-600'
+                >
+                  <div className='space-y-3'>
+                    <div className='flex items-start justify-between'>
+                      <div className='flex-1'>
+                        <div className='flex items-center space-x-2'>
+                          <h3 className='text-base font-medium text-white'>
+                            {setting.display_name}
+                          </h3>
+
+                          {(setting.description || setting.help_text) && (
+                            <HelpTooltip
+                              content={
+                                setting.description ||
+                                setting.help_text ||
+                                'Настройка системы'
+                              }
+                            />
+                          )}
+
+                          {setting.requires_restart === true && (
+                            <span className='px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full'>
+                              Requires Restart
+                            </span>
+                          )}
+
+                          {setting.is_sensitive === true && (
+                            <span className='px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full'>
+                              Sensitive
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className='space-y-3'>
+                      <div>{renderSettingInput(setting)}</div>
+
                       <div className='flex items-center space-x-2'>
-                        <h3 className='text-base font-medium text-white'>
-                          {setting.display_name}
-                        </h3>
+                        <button
+                          onClick={() =>
+                            handleSave(
+                              setting.parameter_name,
+                              formData[setting.parameter_name] ||
+                        rameter_value
+                            )
+                          }
+                          disabled={saving || setting.is_readonly}
+                          className='px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed'
+                        >
+                          {saving ? 'Saving...' : 'Save'}
+                        </button>
 
-                        {(setting.description || setting.help_text) && (
-                          <HelpTooltip
-                            content={
-                              setting.description ||
-                              setting.help_text ||
-                              'Настройка системы'
-                            }
-                          />
-                        )}
+                        <button
+                          onClick={() => handleReset(setting)}
+                          disabled={saving || setting.is_readonly}
+                          className='px-3 py-1 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
+                        >
+                          Reset to Default
+                        </button>
 
-                        {setting.requires_restart && (
-                          <span className='px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full'>
-                            Requires Restart
-                          </span>
-                        )}
-                        {setting.is_sensitive && (
-                          <span className='px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full'>
-                            Sensitive
+                        {setting.is_readonly === true && (
+                          <span className='text-xs text-gray-400'>
+                            Read-only
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
+                </div>
+              ))}
 
-                  <div className='space-y-3'>
-                    <div>{renderSettingInput(setting)}</div>
+            {/* Настройки обычного размера (в сетке) */}
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              {categorySettings
+                .filter((setting) => setting.ui_component !== 'textarea')
+                .map((setting) => (
+                  <div
+                    key={setting.parameter_name}
+                    className='bg-gray-700/50 rounded-lg p-4 border border-gray-600'
+                  >
+                    <div className='space-y-3'>
+                      <div className='flex items-start justify-between'>
+                        <div className='flex-1'>
+                          <div className='flex items-center space-x-2'>
+                            <h3 className='text-base font-medium text-white'>
+                              {setting.display_name}
+                            </h3>
+                            {(setting.description || setting.help_text) && (
+                              <HelpTooltip
+                                content={
+                                  setting.description ||
+                                  setting.help_text ||
+                                  'Настройка системы'
+                                }
+                              />
+                            )}
+                            {setting.requires_restart === true && (
+                              <span className='px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full'>
+                                Requires Restart
+                              </span>
+                            )}
 
-                    <div className='flex items-center space-x-2'>
-                      <button
-                        onClick={() =>
-                          handleSave(
-                            setting.parameter_name,
-                            formData[setting.parameter_name] ||
-                              setting.parameter_value
-                          )
-                        }
-                        disabled={saving || setting.is_readonly}
-                        className='px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed'
-                      >
-                        {saving ? 'Saving...' : 'Save'}
-                      </button>
+                            {setting.is_sensitive === true && (
+                              <span className='px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full'>
+                                Sensitive
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
 
-                      <button
-                        onClick={() => handleReset(setting)}
-                        disabled={saving || setting.is_readonly}
-                        className='px-3 py-1 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
-                      >
-                        Reset to Default
-                      </button>
+                      <div className='space-y-3'>
+                        <div>{renderSettingInput(setting)}</div>
 
-                      {setting.is_readonly && (
-                        <span className='text-xs text-gray-400'>Read-only</span>
-                      )}
+                        <div className='flex items-center space-x-2'>
+                          <button
+                            onClick={() =>
+                              handleSave(
+                                setting.parameter_name,
+                                formData[setting.parameter_name] ||
+                                  setting.parameter_value
+                              )
+                            }
+                            disabled={saving || setting.is_readonly}
+                            className='px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed'
+                          >
+                            {saving ? 'Saving...' : 'Save'}
+                          </button>
+
+                          <button
+                            onClick={() => handleReset(setting)}
+                            disabled={saving || setting.is_readonly}
+                            className='px-3 py-1 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
+                          >
+                            Reset to Default
+                          </button>
+
+                          {setting.is_readonly === true && (
+                            <span className='text-xs text-gray-400'>
+                              Read-only
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                ))}
+            </div>
           </div>
         </div>
       ))}
