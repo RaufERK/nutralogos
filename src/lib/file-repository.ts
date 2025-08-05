@@ -143,6 +143,8 @@ export class FileRepository {
   static async getStats(): Promise<{
     totalFiles: number
     totalSize: number
+    originalFilesSize: number
+    txtFilesSize: number
     byStatus: Record<string, number>
     byType: Record<string, number>
   }> {
@@ -179,11 +181,88 @@ export class FileRepository {
       )
       .all()
 
+    // Получаем размер оригинальных файлов (все файлы)
+    const originalStats = db
+      .prepare(
+        `
+      SELECT SUM(file_size) as originalFilesSize
+      FROM files
+    `
+      )
+      .get()
+
+    // Получаем размер txt файлов (если есть информация о них)
+    // Пока считаем как примерный размер - 30% от оригинала для текстовых файлов
+    const txtStats = db
+      .prepare(
+        `
+      SELECT SUM(file_size * 0.3) as txtFilesSize
+      FROM files
+      WHERE mime_type LIKE '%text%' OR mime_type = 'application/pdf'
+    `
+      )
+      .get()
+
     return {
       totalFiles: stats.totalFiles || 0,
       totalSize: stats.totalSize || 0,
+      originalFilesSize: originalStats.originalFilesSize || 0,
+      txtFilesSize: txtStats.txtFilesSize || 0,
       byStatus: Object.fromEntries(byStatus.map((s) => [s.status, s.count])),
       byType: Object.fromEntries(byType.map((t) => [t.mime_type, t.count])),
+    }
+  }
+
+  static async getFilesPaginated(
+    page: number = 1,
+    limit: number = 20,
+    statusFilter?: string
+  ): Promise<{
+    files: FileRecord[]
+    total: number
+    pages: number
+    currentPage: number
+  }> {
+    const db = await getDatabase()
+    const offset = (page - 1) * limit
+
+    let whereClause = ''
+    let params: any[] = []
+
+    if (statusFilter && statusFilter !== 'all') {
+      whereClause = 'WHERE status = ?'
+      params.push(statusFilter)
+    }
+
+    // Получаем общее количество файлов
+    const totalResult = db
+      .prepare(`SELECT COUNT(*) as total FROM files ${whereClause}`)
+      .get(params)
+    const total = totalResult.total
+
+    // Получаем файлы с пагинацией
+    const files = db
+      .prepare(
+        `
+        SELECT * FROM files 
+        ${whereClause}
+        ORDER BY upload_date DESC 
+        LIMIT ? OFFSET ?
+      `
+      )
+      .all([...params, limit, offset])
+
+    return {
+      files: files.map((file) => ({
+        ...file,
+        qdrant_points: file.qdrant_points
+          ? JSON.parse(file.qdrant_points)
+          : null,
+        metadata: file.metadata ? JSON.parse(file.metadata) : null,
+      })),
+      total,
+      pages: Math.ceil(total / limit),
+      currentPage: page,
     }
   }
 }

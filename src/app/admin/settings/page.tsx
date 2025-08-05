@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { SystemSetting, SettingsByCategory } from '@/lib/settings-service'
+import HelpTooltip from './components/HelpTooltip'
 
 interface SettingsFormData {
   [key: string]: string
@@ -238,6 +239,16 @@ export default function SettingsPage() {
     }
   }
 
+  const getCategoryBgColor = (category: string, index: number) => {
+    const colors = [
+      'bg-gray-800', // Темно-серый
+      'bg-slate-800', // Немного синеватый серый
+      'bg-zinc-800', // Немного теплее серый
+      'bg-neutral-800', // Нейтральный серый
+    ]
+    return colors[index % colors.length]
+  }
+
   if (loading) {
     return (
       <div className='flex items-center justify-center min-h-screen'>
@@ -268,85 +279,89 @@ export default function SettingsPage() {
       )}
 
       {/* Settings by Category */}
-      {Object.entries(settings).map(([category, categorySettings]) => (
+      {Object.entries(settings).map(([category, categorySettings], index) => (
         <div
           key={category}
-          className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'
+          className={`${getCategoryBgColor(
+            category,
+            index
+          )} rounded-lg shadow p-6`}
         >
           <div className='flex items-center mb-6'>
             <span className='text-2xl mr-3'>{getCategoryIcon(category)}</span>
-            <h2 className='text-xl font-semibold text-gray-900 dark:text-white'>
+            <h2 className='text-xl font-semibold text-white'>
               {getCategoryTitle(category)}
             </h2>
           </div>
 
-          <div className='space-y-6'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
             {categorySettings.map((setting) => (
               <div
                 key={setting.parameter_name}
-                className='border-b border-gray-200 pb-6 last:border-b-0'
+                className='bg-gray-700/50 rounded-lg p-4 border border-gray-600'
               >
-                <div className='flex items-start justify-between'>
-                  <div className='flex-1'>
+                <div className='space-y-3'>
+                  <div className='flex items-start justify-between'>
+                    <div className='flex-1'>
+                      <div className='flex items-center space-x-2'>
+                        <h3 className='text-base font-medium text-white'>
+                          {setting.display_name}
+                        </h3>
+
+                        {(setting.description || setting.help_text) && (
+                          <HelpTooltip
+                            content={
+                              setting.description ||
+                              setting.help_text ||
+                              'Настройка системы'
+                            }
+                          />
+                        )}
+
+                        {setting.requires_restart && (
+                          <span className='px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full'>
+                            Requires Restart
+                          </span>
+                        )}
+                        {setting.is_sensitive && (
+                          <span className='px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full'>
+                            Sensitive
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className='space-y-3'>
+                    <div>{renderSettingInput(setting)}</div>
+
                     <div className='flex items-center space-x-2'>
-                      <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                        {setting.display_name}
-                      </h3>
-                      {setting.requires_restart && (
-                        <span className='px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full'>
-                          Requires Restart
-                        </span>
-                      )}
-                      {setting.is_sensitive && (
-                        <span className='px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full'>
-                          Sensitive
-                        </span>
+                      <button
+                        onClick={() =>
+                          handleSave(
+                            setting.parameter_name,
+                            formData[setting.parameter_name] ||
+                              setting.parameter_value
+                          )
+                        }
+                        disabled={saving || setting.is_readonly}
+                        className='px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed'
+                      >
+                        {saving ? 'Saving...' : 'Save'}
+                      </button>
+
+                      <button
+                        onClick={() => handleReset(setting)}
+                        disabled={saving || setting.is_readonly}
+                        className='px-3 py-1 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
+                      >
+                        Reset to Default
+                      </button>
+
+                      {setting.is_readonly && (
+                        <span className='text-xs text-gray-400'>Read-only</span>
                       )}
                     </div>
-
-                    {setting.description && (
-                      <p className='text-sm text-gray-600 dark:text-gray-400 mt-1'>
-                        {setting.description}
-                      </p>
-                    )}
-
-                    {setting.help_text && (
-                      <p className='text-xs text-gray-500 dark:text-gray-500 mt-1'>
-                        💡 {setting.help_text}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className='mt-4 space-y-3'>
-                  <div className='max-w-md'>{renderSettingInput(setting)}</div>
-
-                  <div className='flex items-center space-x-3'>
-                    <button
-                      onClick={() =>
-                        handleSave(
-                          setting.parameter_name,
-                          formData[setting.parameter_name] ||
-                            setting.parameter_value
-                        )
-                      }
-                      disabled={saving || setting.is_readonly}
-                      className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed'
-                    >
-                      {saving ? 'Saving...' : 'Save'}
-                    </button>
-
-                    <button
-                      onClick={() => handleReset(setting)}
-                      disabled={saving || setting.is_readonly}
-                      className='px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
-                    >
-                      Reset to Default
-                    </button>
-
-                    {setting.is_readonly && (
-                      <span className='text-sm text-gray-500'>Read-only</span>
-                    )}
                   </div>
                 </div>
               </div>

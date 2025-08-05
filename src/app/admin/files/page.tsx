@@ -1,8 +1,25 @@
 import Link from 'next/link'
 import { FileRepository } from '@/lib/file-repository'
+import { Suspense } from 'react'
+import StatusFilter from './components/StatusFilter'
 
-export default async function FilesPage() {
-  const files = await FileRepository.getAllFiles()
+interface FilesPageProps {
+  searchParams: {
+    page?: string
+    status?: string
+  }
+}
+
+export default async function FilesPage({ searchParams }: FilesPageProps) {
+  const page = parseInt(searchParams.page || '1')
+  const statusFilter = searchParams.status || 'all'
+
+  const { files, total, pages, currentPage } =
+    await FileRepository.getFilesPaginated(
+      page,
+      20,
+      statusFilter === 'all' ? undefined : statusFilter
+    )
   const stats = await FileRepository.getStats()
 
   const getStatusColor = (status: string) => {
@@ -62,7 +79,7 @@ export default async function FilesPage() {
       </div>
 
       {/* Статистика */}
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4'>
         <div className='bg-gray-800 rounded-lg p-4'>
           <div className='flex items-center'>
             <div className='p-2 bg-blue-500 text-white rounded-lg'>
@@ -86,6 +103,34 @@ export default async function FilesPage() {
               <p className='text-sm text-gray-400'>Общий размер</p>
               <p className='text-lg font-semibold text-white'>
                 {formatFileSize(stats.totalSize)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-gray-800 rounded-lg p-4'>
+          <div className='flex items-center'>
+            <div className='p-2 bg-purple-500 text-white rounded-lg'>
+              <span className='text-xl'>📁</span>
+            </div>
+            <div className='ml-3'>
+              <p className='text-sm text-gray-400'>Размер оригиналов</p>
+              <p className='text-lg font-semibold text-white'>
+                {formatFileSize(stats.originalFilesSize)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-gray-800 rounded-lg p-4'>
+          <div className='flex items-center'>
+            <div className='p-2 bg-indigo-500 text-white rounded-lg'>
+              <span className='text-xl'>📝</span>
+            </div>
+            <div className='ml-3'>
+              <p className='text-sm text-gray-400'>Размер txt-файлов</p>
+              <p className='text-lg font-semibold text-white'>
+                {formatFileSize(stats.txtFilesSize)}
               </p>
             </div>
           </div>
@@ -119,6 +164,13 @@ export default async function FilesPage() {
           </div>
         </div>
       </div>
+
+      {/* Фильтры */}
+      <StatusFilter
+        currentStatus={statusFilter}
+        totalFiles={total}
+        displayedFiles={files.length}
+      />
 
       {/* Список файлов */}
       <div className='bg-gray-800 rounded-lg shadow'>
@@ -213,6 +265,63 @@ export default async function FilesPage() {
           </div>
         )}
       </div>
+
+      {/* Пагинация */}
+      {pages > 1 && (
+        <div className='bg-gray-800 rounded-lg p-4'>
+          <div className='flex items-center justify-between'>
+            <div className='text-gray-400'>
+              Страница {currentPage} из {pages}
+            </div>
+
+            <div className='flex items-center space-x-2'>
+              {currentPage > 1 && (
+                <Link
+                  href={`/admin/files?page=${currentPage - 1}${
+                    statusFilter !== 'all' ? `&status=${statusFilter}` : ''
+                  }`}
+                  className='px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors'
+                >
+                  ←
+                </Link>
+              )}
+
+              {Array.from({ length: Math.min(5, pages) }, (_, i) => {
+                const pageNum =
+                  Math.max(1, Math.min(pages - 4, currentPage - 2)) + i
+                if (pageNum > pages) return null
+
+                return (
+                  <Link
+                    key={pageNum}
+                    href={`/admin/files?page=${pageNum}${
+                      statusFilter !== 'all' ? `&status=${statusFilter}` : ''
+                    }`}
+                    className={`px-3 py-2 rounded-md transition-colors ${
+                      pageNum === currentPage
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-white hover:bg-gray-600'
+                    }`}
+                  >
+                    {pageNum}
+                  </Link>
+                )
+              })}
+
+              {currentPage < pages && (
+                <Link
+                  href={`/admin/files?page=${currentPage + 1}${
+                    statusFilter !== 'all' ? `&status=${statusFilter}` : ''
+                  }`}
+                  className='px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors'
+                >
+                  →
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
