@@ -56,7 +56,7 @@ export class ChunkingService {
       `📝 [CHUNKING] Using settings: ${options.chunkSize} tokens, ${options.chunkOverlap} overlap, structure: ${options.preserveStructure}`
     )
 
-    return OptimizedTextSplitter.splitTextOptimized(text, options)
+    return await OptimizedTextSplitter.splitTextOptimized(text, options)
   }
 
   /**

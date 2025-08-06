@@ -12,9 +12,13 @@ import { RAGSettings } from '@/lib/settings-service'
  * Combines document retrieval with LLM generation
  */
 export async function createSpiritualRAGChain() {
+  // Получаем параметры из настроек
+  const retrievalK = await RAGSettings.getRetrievalK()
+  const scoreThreshold = await RAGSettings.getScoreThreshold()
+
   const retriever = createRetriever({
-    k: 8, // Retrieve top 8 most relevant documents
-    scoreThreshold: 0.3, // Only include documents with similarity > 30%
+    k: retrievalK, // Из настроек retrieval_k
+    scoreThreshold: scoreThreshold, // Из настроек score_threshold
   })
 
   const prompt = await createDynamicPrompt(true)
@@ -70,9 +74,14 @@ export class EnhancedSpiritualRAGChain {
    * Initialize components with dynamic settings
    */
   private async initialize() {
-    if (!this.retriever) {
-      this.retriever = await createRetriever()
-    }
+    // Всегда пересоздаём retriever чтобы получить актуальные настройки
+    const retrievalK = await RAGSettings.getRetrievalK()
+    const scoreThreshold = await RAGSettings.getScoreThreshold()
+    this.retriever = await createRetriever({
+      k: retrievalK,
+      scoreThreshold: scoreThreshold,
+    })
+
     if (!this.llm) {
       this.llm = await createLLM()
     }

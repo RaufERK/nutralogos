@@ -57,14 +57,29 @@ export class OptimizedTextSplitter {
    * Оптимизированная разбивка текста на чанки по токенам
    * Основано на рекомендациях OpenAI для embeddings
    */
-  static splitTextOptimized(
+  static async splitTextOptimized(
     text: string,
     options: ChunkingOptions = {}
-  ): TextChunk[] {
+  ): Promise<TextChunk[]> {
+    // Загружаем актуальные настройки из базы данных
+    const { SettingsService } = await import('../settings-service')
+    const defaultChunkSize = await SettingsService.getSettingValue(
+      'chunk_size',
+      1000
+    )
+    const defaultChunkOverlap = await SettingsService.getSettingValue(
+      'chunk_overlap',
+      200
+    )
+    const defaultPreserveStructure = await SettingsService.getSettingValue(
+      'preserve_text_structure',
+      true
+    )
+
     const {
-      chunkSize = 1000, // токенов - рекомендация OpenAI
-      chunkOverlap = 200, // токенов - 20% от размера чанка
-      preserveStructure = true,
+      chunkSize = defaultChunkSize, // Из настроек chunk_size
+      chunkOverlap = defaultChunkOverlap, // Из настроек chunk_overlap
+      preserveStructure = defaultPreserveStructure, // Из настроек preserve_text_structure
     } = options
 
     // Memory protection

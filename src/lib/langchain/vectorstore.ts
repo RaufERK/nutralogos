@@ -57,14 +57,23 @@ export function getVectorStore(): QdrantVectorStore {
  */
 export async function searchSimilarDocuments(
   query: string,
-  k: number = 8,
-  scoreThreshold: number = 0.3
+  k?: number,
+  scoreThreshold?: number
 ) {
+  // Загружаем актуальные настройки если параметры не переданы
+  const { RAGSettings } = await import('../settings-service')
+  const defaultK = k ?? (await RAGSettings.getRetrievalK())
+  const defaultScoreThreshold =
+    scoreThreshold ?? (await RAGSettings.getScoreThreshold())
   try {
     const vectorStore = getVectorStore()
-    const results = await vectorStore.similaritySearchWithScore(query, k, {
-      scoreThreshold,
-    })
+    const results = await vectorStore.similaritySearchWithScore(
+      query,
+      defaultK,
+      {
+        scoreThreshold: defaultScoreThreshold,
+      }
+    )
 
     return results.map(([document, score]) => ({
       document,

@@ -6,15 +6,16 @@ import { RAGSettings } from '@/lib/settings-service'
  * Using dynamic settings from database
  */
 export async function createLLM(): Promise<ChatOpenAI> {
+  // Всегда загружаем актуальные настройки из базы данных
   const modelName = await RAGSettings.getAIModel()
   const temperature = await RAGSettings.getTemperature()
   const maxTokens = await RAGSettings.getMaxTokens()
 
   return new ChatOpenAI({
     openAIApiKey: process.env.OPENAI_API_KEY!,
-    modelName,
-    temperature,
-    maxTokens,
+    modelName, // Из настроек openai_chat_model
+    temperature, // Из настроек temperature
+    maxTokens, // Из настроек max_tokens
     topP: 1.0,
     frequencyPenalty: 0.0,
     presencePenalty: 0.0,
@@ -24,12 +25,13 @@ export async function createLLM(): Promise<ChatOpenAI> {
 /**
  * Default LLM instance for backward compatibility
  * Note: This uses default values, use createLLM() for dynamic settings
+ * WARNING: This instance uses hardcoded values - prefer createLLM() for dynamic settings
  */
 export const llm = new ChatOpenAI({
   openAIApiKey: process.env.OPENAI_API_KEY!,
-  modelName: 'gpt-4o',
-  temperature: 0.4,
-  maxTokens: 4000,
+  modelName: 'gpt-4o', // HARDCODED - use createLLM() instead
+  temperature: 0.4, // HARDCODED - use createLLM() instead
+  maxTokens: 4000, // HARDCODED - use createLLM() instead
   topP: 1.0,
   frequencyPenalty: 0.0,
   presencePenalty: 0.0,
@@ -40,7 +42,7 @@ export const llm = new ChatOpenAI({
  * @param options - Custom LLM options
  * @returns ChatOpenAI instance
  */
-export function createCustomLLM(
+export async function createCustomLLM(
   options: {
     modelName?: string
     temperature?: number
@@ -50,11 +52,16 @@ export function createCustomLLM(
     presencePenalty?: number
   } = {}
 ) {
+  // Загружаем настройки по умолчанию из базы данных
+  const defaultModelName = await RAGSettings.getAIModel()
+  const defaultTemperature = await RAGSettings.getTemperature()
+  const defaultMaxTokens = await RAGSettings.getMaxTokens()
+
   return new ChatOpenAI({
     openAIApiKey: process.env.OPENAI_API_KEY!,
-    modelName: options.modelName || process.env.OPENAI_CHAT_MODEL || 'gpt-4o',
-    temperature: options.temperature ?? 0.4,
-    maxTokens: options.maxTokens ?? 4000,
+    modelName: options.modelName || defaultModelName, // Из настроек или переопределение
+    temperature: options.temperature ?? defaultTemperature, // Из настроек или переопределение
+    maxTokens: options.maxTokens ?? defaultMaxTokens, // Из настроек или переопределение
     topP: options.topP ?? 1.0,
     frequencyPenalty: options.frequencyPenalty ?? 0.0,
     presencePenalty: options.presencePenalty ?? 0.0,
