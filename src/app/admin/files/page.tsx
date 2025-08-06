@@ -11,8 +11,9 @@ interface FilesPageProps {
 }
 
 export default async function FilesPage({ searchParams }: FilesPageProps) {
-  const page = parseInt(searchParams.page || '1')
-  const statusFilter = searchParams.status || 'all'
+  const resolvedSearchParams = await searchParams
+  const page = parseInt(resolvedSearchParams.page || '1')
+  const statusFilter = resolvedSearchParams.status || 'all'
 
   const { files, total, pages, currentPage } =
     await ProcessedFilesRepository.getFilesPaginated(

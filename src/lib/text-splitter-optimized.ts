@@ -62,7 +62,7 @@ export class OptimizedTextSplitter {
     options: ChunkingOptions = {}
   ): Promise<TextChunk[]> {
     // Загружаем актуальные настройки из базы данных
-    const { SettingsService } = await import('../settings-service')
+    const { SettingsService } = await import('./settings-service')
     const defaultChunkSize = await SettingsService.getSettingValue(
       'chunk_size',
       1000
