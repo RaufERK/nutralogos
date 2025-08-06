@@ -2,6 +2,7 @@ import { llm, createLLM } from './llm'
 import { createRetriever } from './vectorstore'
 import {
   createSpiritualPrompt,
+  createDynamicPrompt,
   formatEnhancedContextForPrompt,
 } from './prompts'
 import { RAGSettings } from '@/lib/settings-service'
@@ -16,7 +17,7 @@ export async function createSpiritualRAGChain() {
     scoreThreshold: 0.3, // Only include documents with similarity > 30%
   })
 
-  const prompt = createSpiritualPrompt(true)
+  const prompt = await createDynamicPrompt(true)
 
   // Return a simple chain-like object
   return {
@@ -75,10 +76,9 @@ export class EnhancedSpiritualRAGChain {
     if (!this.llm) {
       this.llm = await createLLM()
     }
-    if (!this.prompt) {
-      const spiritualEnabled = await RAGSettings.isSpiritualPromptEnabled()
-      this.prompt = createSpiritualPrompt(spiritualEnabled)
-    }
+    // Всегда пересоздаём prompt чтобы получить актуальные настройки
+    const spiritualEnabled = await RAGSettings.isSpiritualPromptEnabled()
+    this.prompt = await createDynamicPrompt(spiritualEnabled)
   }
 
   /**

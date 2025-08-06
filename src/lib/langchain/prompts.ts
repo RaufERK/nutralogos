@@ -1,4 +1,5 @@
 import { PromptTemplate } from '@langchain/core/prompts'
+import { getDatabase } from '../database'
 
 /**
  * Spiritual Assistant System Prompt
@@ -20,7 +21,50 @@ export const SPIRITUAL_SYSTEM_PROMPT = `Ты — мудрый и сочувст�
 Ответ:`
 
 /**
- * Create spiritual assistant prompt template
+ * Create dynamic assistant prompt template with system prompt from settings
+ * @param includeContext - Whether to include context from documents
+ * @returns PromptTemplate instance
+ */
+export async function createDynamicPrompt(
+  includeContext: boolean = true
+): Promise<PromptTemplate> {
+  // Получаем актуальный system prompt напрямую из базы данных
+  const db = await getDatabase()
+  const setting = db
+    .prepare(
+      'SELECT parameter_value FROM system_settings WHERE parameter_name = ?'
+    )
+    .get('system_prompt') as { parameter_value: string } | undefined
+
+  const defaultPrompt = `Ты — профессиональный ассистент нутрициолога.
+
+Твоя задача — помогать пользователю находить обоснованные и полезные ответы по темам здоровья, питания, витаминов, микро- и макроэлементов, добавок, образа жизни и нутрицевтической поддержки.`
+
+  const systemPrompt = setting ? setting.parameter_value : defaultPrompt
+
+  if (includeContext) {
+    return PromptTemplate.fromTemplate(`${systemPrompt}
+
+--- КОНТЕКСТ ИЗ ИСТОЧНИКОВ ---
+
+{context}
+
+--- КОНЕЦ КОНТЕКСТА ---
+
+Отвечай на основе предоставленной информации. Если информации недостаточно, скажи об этом. Не выдумывай и не добавляй от себя.
+
+Вопрос: {question}
+Ответ:`)
+  } else {
+    return PromptTemplate.fromTemplate(`${systemPrompt}
+
+Вопрос: {question}
+Ответ:`)
+  }
+}
+
+/**
+ * Create spiritual assistant prompt template (deprecated - use createDynamicPrompt)
  * @param includeContext - Whether to include context from documents
  * @returns PromptTemplate instance
  */

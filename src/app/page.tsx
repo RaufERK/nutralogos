@@ -22,6 +22,10 @@ export default function Home() {
   const [collapsedSources, setCollapsedSources] = useState<Set<string>>(
     new Set() // По умолчанию все источники свёрнуты
   )
+  const [welcomeMessage, setWelcomeMessage] =
+    useState(`Этот чат-помощник создан, чтобы помогать вам находить ответы на вопросы о здоровье, питании и нутрициологической поддержке.
+
+Задайте вопрос — и я подберу для вас наиболее точную и полезную информацию из нашей экспертной базы знаний.`)
 
   // Hook для управления контекстом чата
   const {
@@ -34,6 +38,23 @@ export default function Home() {
 
   // Ref для автоматического скролла к последнему сообщению
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Загружаем приветственное сообщение из настроек при инициализации
+  useEffect(() => {
+    const loadWelcomeMessage = async () => {
+      try {
+        const response = await fetch('/api/settings/welcome-message')
+        if (response.ok) {
+          const data = await response.json()
+          setWelcomeMessage(data.welcomeMessage)
+        }
+      } catch (error) {
+        console.error('Ошибка при загрузке приветственного сообщения:', error)
+        // Используем значение по умолчанию
+      }
+    }
+    loadWelcomeMessage()
+  }, [])
 
   // Простой и надежный автоскролл - к концу placeholder при любых изменениях
   useEffect(() => {
@@ -162,15 +183,8 @@ export default function Home() {
             {messages.length === 0 && !isLoading && !error && (
               <div className='flex flex-col items-center justify-center min-h-[80vh]'>
                 <div className='text-center mb-12'>
-                  <p className='text-gray-300 text-base max-w-3xl mx-auto leading-relaxed'>
-                    Этот Чат помогает находить ответы, опираясь на Учения
-                    Вознесённых Владык <br />
-                    и духовную науку Новой Эпохи.
-                    <br />
-                    <br />
-                    Задайте вопрос — и я подберу для вас наиболее созвучную
-                    информацию <br />
-                    из нашей базы знаний.
+                  <p className='text-gray-300 text-base max-w-3xl mx-auto leading-relaxed whitespace-pre-line'>
+                    {welcomeMessage}
                   </p>
                 </div>
 
