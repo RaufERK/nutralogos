@@ -3,7 +3,8 @@ import { QdrantPoint, Document, DocumentMetadata } from './types'
 
 const QDRANT_URL = process.env.QDRANT_URL
 const QDRANT_API_KEY = process.env.QDRANT_API_KEY
-const QDRANT_COLLECTION_NAME = process.env.QDRANT_COLLECTION_NAME || 'documents'
+const QDRANT_COLLECTION_NAME =
+  process.env.QDRANT_COLLECTION_NAME || 'nutralogos'
 
 // Создаем клиент только если URL настроен
 let client: QdrantClient | null = null
@@ -12,14 +13,14 @@ function getClient(): QdrantClient {
   if (!QDRANT_URL) {
     throw new Error('QDRANT_URL is not set in environment variables')
   }
-  
+
   if (!client) {
     client = new QdrantClient({
       url: QDRANT_URL,
       apiKey: QDRANT_API_KEY,
     })
   }
-  
+
   return client
 }
 
@@ -45,7 +46,7 @@ export async function createCollection(): Promise<void> {
 
 export async function upsertPoints(points: QdrantPoint[]): Promise<void> {
   const qdrantClient = getClient()
-  
+
   for (const point of points) {
     await qdrantClient.upsert(QDRANT_COLLECTION_NAME, {
       points: [
@@ -68,7 +69,7 @@ export async function searchSimilar(
   scoreThreshold: number = 0.7
 ): Promise<Document[]> {
   const qdrantClient = getClient()
-  
+
   const response = await qdrantClient.search(QDRANT_COLLECTION_NAME, {
     vector: vector,
     limit: limit,

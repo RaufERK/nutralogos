@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { FileRepository } from '@/lib/file-repository'
+import { ProcessedFilesRepository } from '@/lib/processed-files-repository'
 import { Suspense } from 'react'
 import StatusFilter from './components/StatusFilter'
 
@@ -15,21 +15,23 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
   const statusFilter = searchParams.status || 'all'
 
   const { files, total, pages, currentPage } =
-    await FileRepository.getFilesPaginated(
+    await ProcessedFilesRepository.getFilesPaginated(
       page,
       20,
       statusFilter === 'all' ? undefined : statusFilter
     )
-  const stats = await FileRepository.getStats()
+  const stats = await ProcessedFilesRepository.getStats()
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
+      case 'embedded':
         return 'text-green-400'
-      case 'processing':
+      case 'original_uploaded':
         return 'text-yellow-400'
-      case 'error':
+      case 'failed':
         return 'text-red-400'
+      case 'duplicate_content':
+        return 'text-blue-400'
       default:
         return 'text-gray-400'
     }
@@ -37,12 +39,14 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'Завершено'
-      case 'processing':
-        return 'Обрабатывается'
-      case 'error':
+      case 'embedded':
+        return 'Встроено'
+      case 'original_uploaded':
+        return 'Загружено'
+      case 'failed':
         return 'Ошибка'
+      case 'duplicate_content':
+        return 'Дубликат'
       default:
         return 'Неизвестно'
     }
@@ -144,7 +148,7 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
             <div className='ml-3'>
               <p className='text-sm text-gray-400'>В обработке</p>
               <p className='text-lg font-semibold text-white'>
-                {stats.byStatus.processing || 0}
+                {stats.byStatus.original_uploaded || 0}
               </p>
             </div>
           </div>
@@ -158,7 +162,7 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
             <div className='ml-3'>
               <p className='text-sm text-gray-400'>Ошибки</p>
               <p className='text-lg font-semibold text-white'>
-                {stats.byStatus.error || 0}
+                {stats.byStatus.failed || 0}
               </p>
             </div>
           </div>
@@ -183,7 +187,7 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
         {files.length === 0 ? (
           <div className='p-6 text-center'>
             <div className='text-6xl mb-4'>📁</div>
-            <p className='text-gray-400 mb-4'>Файлы не загружены</p>
+            <p className='text-gray-400 mb-4'>Файлы не обработаны</p>
             <Link
               href='/admin/upload'
               className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
@@ -226,7 +230,7 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
                         </span>
                         <div>
                           <p className='text-sm font-medium text-white'>
-                            {file.original_name}
+                            {file.original_filename}
                           </p>
                           <p className='text-xs text-gray-400'>
                             {file.mime_type}
@@ -239,16 +243,18 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
                     </td>
                     <td className='px-6 py-4 whitespace-nowrap'>
                       <span
-                        className={`text-sm ${getStatusColor(file.status)}`}
+                        className={`text-sm ${getStatusColor(
+                          file.processing_status
+                        )}`}
                       >
-                        {getStatusText(file.status)}
+                        {getStatusText(file.processing_status)}
                       </span>
                     </td>
                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-300'>
-                      {file.chunks_count}
+                      {file.chunks_created}
                     </td>
                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-300'>
-                      {formatDate(file.upload_date)}
+                      {formatDate(file.uploaded_at)}
                     </td>
                     <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
                       <button className='text-red-400 hover:text-red-300 mr-3'>

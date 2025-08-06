@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -16,27 +16,42 @@ export default function UploadPage() {
   const [files, setFiles] = useState<UploadFile[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [maxFileSizeMB, setMaxFileSizeMB] = useState(50) // default fallback
 
   const generateId = () => Math.random().toString(36).substr(2, 9)
 
+  // Загружаем максимальный размер файла из настроек
+  useEffect(() => {
+    const loadMaxFileSize = async () => {
+      try {
+        const response = await fetch('/api/settings/max-file-size')
+        if (response.ok) {
+          const data = await response.json()
+          setMaxFileSizeMB(data.maxFileSizeMB)
+        }
+      } catch (error) {
+        console.error('Error loading max file size:', error)
+        // Используем значение по умолчанию 50MB
+      }
+    }
+    loadMaxFileSize()
+  }, [])
+
   const validateFile = (file: File): string | null => {
-    const maxSize = 50 * 1024 * 1024 // 50MB
+    const maxSize = maxFileSizeMB * 1024 * 1024 // Динамический размер из настроек
     const allowedTypes = [
-      'application/pdf', // ⚠️ Может крашиться на некоторых PDF
-      'text/plain', // ✅ Работает нормально
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/epub+zip',
-      'application/x-fictionbook+xml',
-      'text/xml', // Дополнительный MIME type для FB2
-      'application/msword', // DOC - старый формат Word
+      'application/pdf', // ✅ PDF - работает стабильно
+      'text/plain', // ✅ TXT - работает отлично
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // ✅ DOCX - работает отлично
+      'application/msword', // ✅ DOC - работает стабильно
     ]
 
     if (file.size > maxSize) {
-      return 'Файл слишком большой (максимум 50MB)'
+      return `Файл слишком большой (максимум ${maxFileSizeMB}MB)`
     }
 
     if (!allowedTypes.includes(file.type)) {
-      return 'Неподдерживаемый тип файла. Поддерживаются: PDF⚠️, TXT✅, DOCX✅, EPUB✅, FB2✅, DOC⚠️'
+      return 'Неподдерживаемый тип файла. Поддерживаются: PDF, TXT, DOCX, DOC'
     }
 
     return null
@@ -217,18 +232,13 @@ export default function UploadPage() {
               Перетащите файлы сюда или нажмите для выбора
             </p>
             <p className='text-gray-400 mt-2'>
-              Поддерживаются: PDF⚠️, TXT✅, DOCX✅, EPUB✅, FB2✅, DOC⚠️
-              (максимум 50MB)
-              <br />
-              <span className='text-yellow-400 text-sm'>
-                ⚠️ PDF и DOC могут иметь проблемы с некоторыми файлами
-              </span>
+              Поддерживаются: PDF, TXT, DOCX, DOC (максимум {maxFileSizeMB}MB)
             </p>
           </div>
           <input
             type='file'
             multiple
-            accept='.pdf,.txt,.docx,.epub,.fb2,.doc'
+            accept='.pdf,.txt,.docx,.doc'
             onChange={handleFileInput}
             className='hidden'
             id='file-input'
@@ -277,13 +287,8 @@ export default function UploadPage() {
                           : fileData.file.type ===
                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                           ? '📄'
-                          : fileData.file.type === 'application/epub+zip'
-                          ? '📚'
-                          : fileData.file.type ===
-                            'application/x-fictionbook+xml'
-                          ? '📖'
                           : fileData.file.type === 'application/msword'
-                          ? '📝⚠️'
+                          ? '📝'
                           : '📝'}
                       </span>
                       <div className='flex-1'>

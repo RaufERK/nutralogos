@@ -41,9 +41,10 @@ export default function StatusFilter({
             className='bg-gray-700 text-white px-3 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500'
           >
             <option value='all'>Все статусы</option>
-            <option value='processing'>В обработке</option>
-            <option value='completed'>Завершено</option>
-            <option value='error'>Ошибка</option>
+            <option value='original_uploaded'>Загружено</option>
+            <option value='embedded'>Встроено</option>
+            <option value='duplicate_content'>Дубликат</option>
+            <option value='failed'>Ошибка</option>
           </select>
         </div>
 
