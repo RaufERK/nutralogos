@@ -34,8 +34,7 @@ export function getVectorStore(): QdrantVectorStore {
     vectorStoreInstance = new QdrantVectorStore(customEmbeddings, {
       url: process.env.QDRANT_URL,
       apiKey: process.env.QDRANT_API_KEY,
-      collectionName:
-        process.env.QDRANT_COLLECTION_NAME || 'rag-chat-collection',
+      collectionName: process.env.QDRANT_COLLECTION_NAME || 'nutralogos',
       collectionConfig: {
         vectors: {
           size: 1536, // OpenAI ada-002 embedding dimension
