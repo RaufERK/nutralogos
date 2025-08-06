@@ -15,10 +15,10 @@
 /* 🌀 Медленное вращение фона для медитативного эффекта */
 @keyframes slow-spin {
   from {
-    transform: rotate(0deg) scale(2);
+    transform: rotate(0deg) scale(2.6);
   }
   to {
-    transform: rotate(360deg) scale(2);
+    transform: rotate(360deg) scale(2.6);
   }
 }
 

@@ -205,10 +205,25 @@ async function initializeTables() {
 async function initializeDefaultSettings() {
   const database = await getDatabase()
 
+  // Проверяем, есть ли уже настройки в базе данных
+  const existingSettingsCount = database
+    .prepare('SELECT COUNT(*) as count FROM system_settings')
+    .get() as { count: number }
+
+  // Если настройки уже есть, не создаем дублирующиеся
+  if (existingSettingsCount.count > 0) {
+    console.log('🔧 System settings already exist, skipping initialization')
+    return
+  }
+
+  console.log('🔧 Initializing default system settings...')
+
+  // Создаем только базовые настройки, если база данных пустая
+  // Остальные настройки должны быть созданы через миграции
   const defaultSettings = [
-    // AI Model Settings
+    // Минимальные базовые настройки для первого запуска
     {
-      category: 'ai',
+      category: 'AI_Model_and_Response_Generation',
       parameter_name: 'openai_chat_model',
       parameter_value: 'gpt-4o',
       default_value: 'gpt-4o',
@@ -219,183 +234,6 @@ async function initializeDefaultSettings() {
       ui_component: 'select',
       ui_options: JSON.stringify(['gpt-4o', 'gpt-3.5-turbo', 'gpt-4-turbo']),
       ui_order: 1,
-    },
-    {
-      category: 'ai',
-      parameter_name: 'temperature',
-      parameter_value: '0.4',
-      default_value: '0.4',
-      parameter_type: 'number',
-      display_name: 'Temperature',
-      description: 'Креативность ответов (0.0-2.0)',
-      help_text: '0.0 = очень точные ответы, 2.0 = очень креативные',
-      ui_component: 'slider',
-      ui_options: JSON.stringify({ min: 0, max: 2, step: 0.1 }),
-      ui_order: 2,
-    },
-    {
-      category: 'ai',
-      parameter_name: 'max_tokens',
-      parameter_value: '4000',
-      default_value: '4000',
-      parameter_type: 'number',
-      display_name: 'Max Tokens',
-      description: 'Максимальная длина ответа',
-      help_text: 'Максимальное количество токенов в ответе',
-      ui_component: 'input',
-      ui_options: JSON.stringify({ type: 'number', min: 100, max: 8000 }),
-      ui_order: 3,
-    },
-
-    // Search & Retrieval Settings
-    {
-      category: 'search',
-      parameter_name: 'retrieval_k',
-      parameter_value: '8',
-      default_value: '8',
-      parameter_type: 'number',
-      display_name: 'Retrieval K',
-      description: 'Количество документов для поиска',
-      help_text: 'Сколько документов искать при запросе',
-      ui_component: 'input',
-      ui_options: JSON.stringify({ type: 'number', min: 1, max: 20 }),
-      ui_order: 1,
-    },
-    {
-      category: 'search',
-      parameter_name: 'score_threshold',
-      parameter_value: '0.3',
-      default_value: '0.3',
-      parameter_type: 'number',
-      display_name: 'Score Threshold',
-      description: 'Минимальный порог сходства (0.0-1.0)',
-      help_text: 'Минимальный score для включения документа в контекст',
-      ui_component: 'slider',
-      ui_options: JSON.stringify({ min: 0, max: 1, step: 0.05 }),
-      ui_order: 2,
-    },
-    {
-      category: 'search',
-      parameter_name: 'rerank_enabled',
-      parameter_value: 'true',
-      default_value: 'true',
-      parameter_type: 'boolean',
-      display_name: 'Enable Re-ranking',
-      description: 'Включить переранжирование документов',
-      help_text: 'Использовать кастомную логику переранжирования',
-      ui_component: 'toggle',
-      ui_order: 3,
-    },
-
-    // Content Settings
-    {
-      category: 'content',
-      parameter_name: 'spiritual_prompt_enabled',
-      parameter_value: 'true',
-      default_value: 'true',
-      parameter_type: 'boolean',
-      display_name: 'Spiritual Prompt',
-      description: 'Использовать духовный промпт',
-      help_text: 'Специализированный промпт для духовных вопросов',
-      ui_component: 'toggle',
-      ui_order: 1,
-    },
-    {
-      category: 'content',
-      parameter_name: 'context_max_length',
-      parameter_value: '8000',
-      default_value: '8000',
-      parameter_type: 'number',
-      display_name: 'Context Max Length',
-      description: 'Максимальная длина контекста',
-      help_text: 'Максимальное количество символов в контексте',
-      ui_component: 'input',
-      ui_options: JSON.stringify({ type: 'number', min: 1000, max: 10000 }),
-      ui_order: 2,
-    },
-
-    // Security Settings
-    {
-      category: 'security',
-      parameter_name: 'requests_per_minute',
-      parameter_value: '60',
-      default_value: '60',
-      parameter_type: 'number',
-      display_name: 'Requests per Minute',
-      description: 'Лимит запросов в минуту',
-      help_text: 'Максимальное количество запросов в минуту на пользователя',
-      ui_component: 'input',
-      ui_options: JSON.stringify({ type: 'number', min: 1, max: 100 }),
-      ui_order: 1,
-    },
-    {
-      category: 'security',
-      parameter_name: 'max_file_size_mb',
-      parameter_value: '50',
-      default_value: '50',
-      parameter_type: 'number',
-      display_name: 'Max File Size (MB)',
-      description: 'Максимальный размер файла в мегабайтах',
-      help_text: 'Максимальный размер загружаемого файла',
-      ui_component: 'input',
-      ui_options: JSON.stringify({ type: 'number', min: 1, max: 100 }),
-      ui_order: 2,
-    },
-
-    // System Settings
-    {
-      category: 'system',
-      parameter_name: 'use_mock',
-      parameter_value: 'false',
-      default_value: 'false',
-      parameter_type: 'boolean',
-      display_name: 'Use Mock Mode',
-      description: 'Включить мок-режим для разработки',
-      help_text:
-        'При включении использует фиктивные ответы вместо реальных API',
-      ui_component: 'toggle',
-      ui_order: 1,
-    },
-    {
-      category: 'system',
-      parameter_name: 'chunk_size',
-      parameter_value: '1000',
-      default_value: '1000',
-      parameter_type: 'number',
-      display_name: 'Chunk Size',
-      description: 'Размер фрагмента текста для обработки',
-      help_text:
-        'Количество символов в одном фрагменте при разбиении документов',
-      ui_component: 'input',
-      ui_options: JSON.stringify({ type: 'number', min: 100, max: 5000 }),
-      ui_order: 2,
-    },
-    {
-      category: 'system',
-      parameter_name: 'chunk_overlap',
-      parameter_value: '200',
-      default_value: '200',
-      parameter_type: 'number',
-      display_name: 'Chunk Overlap',
-      description: 'Перекрытие между фрагментами текста',
-      help_text: 'Количество символов перекрытия между соседними фрагментами',
-      ui_component: 'input',
-      ui_options: JSON.stringify({ type: 'number', min: 0, max: 1000 }),
-      ui_order: 3,
-    },
-    {
-      category: 'system',
-      parameter_name: 'system_prompt',
-      parameter_value:
-        'Ты — мудрый и сочувствующий духовный ассистент, специализирующийся на вопросах духовности, саморазвития и метафизики.',
-      default_value:
-        'Ты — мудрый и сочувствующий духовный ассистент, специализирующийся на вопросах духовности, саморазвития и метафизики.',
-      parameter_type: 'string',
-      display_name: 'System Prompt',
-      description: 'Системный промпт для AI ассистента',
-      help_text: 'Базовые инструкции которые определяют поведение AI',
-      ui_component: 'textarea',
-      ui_order: 4,
     },
   ]
 

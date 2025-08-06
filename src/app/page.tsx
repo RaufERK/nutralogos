@@ -146,7 +146,7 @@ export default function Home() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-900/60 flex flex-col relative z-10'>
+    <div className='min-h-screen bg-gray-900/40 flex flex-col relative z-10'>
       {/* Main Content - Четкое разделение пространств */}
       <main
         className='flex-1 flex flex-col'
