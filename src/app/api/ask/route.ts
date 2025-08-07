@@ -76,11 +76,37 @@ ${contextString}
       console.error('❌ RAG Chain error:', chainError)
       hasQdrantError = true
 
-      // Fallback to GPT-only response
-      ragResult = {
-        text: 'Извините, произошла ошибка при поиске в базе знаний. Попробуйте переформулировать вопрос.',
-        sourceDocuments: [],
-        relevanceScores: [],
+      // Fallback: используем только GPT без RAG
+      console.log('🔄 Fallback to GPT-only mode...')
+
+      try {
+        const { createLLM } = await import('@/lib/langchain/llm')
+        const llm = await createLLM()
+
+        const response = await llm.invoke([
+          {
+            role: 'system',
+            content:
+              'Вы - помощник по вопросам здоровья, питания и нутрициологии. Отвечайте на основе ваших знаний, если не знаете точного ответа - так и скажите.',
+          },
+          {
+            role: 'user',
+            content: finalQuery,
+          },
+        ])
+
+        ragResult = {
+          text: response.content,
+          sourceDocuments: [],
+          relevanceScores: [],
+        }
+      } catch (gptError) {
+        console.error('❌ GPT fallback also failed:', gptError)
+        ragResult = {
+          text: 'Извините, произошла техническая ошибка. Попробуйте позже или переформулируйте вопрос.',
+          sourceDocuments: [],
+          relevanceScores: [],
+        }
       }
     }
 

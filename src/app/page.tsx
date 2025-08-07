@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { AskResponse, Document } from '@/lib/types'
 import { useChatContext } from '@/hooks/useChatContext'
+import { useWebSocket } from '@/hooks/useWebSocket'
 
 interface Message {
   id: string
@@ -22,6 +23,7 @@ export default function Home() {
   const [collapsedSources, setCollapsedSources] = useState<Set<string>>(
     new Set() // По умолчанию все источники свёрнуты
   )
+  const [isStreamingMode] = useState(true) // Всегда включен стриминг
   const [welcomeMessage, setWelcomeMessage] =
     useState(`Этот чат-помощник создан, чтобы помогать вам находить ответы на вопросы о здоровье, питании и нутрициологической поддержке.
 
@@ -35,6 +37,15 @@ export default function Home() {
     isContextActive,
     messageCount,
   } = useChatContext()
+
+  // WebSocket hook для стриминга
+  const {
+    isConnected: wsConnected,
+    sendStreamingRequest,
+    streamingMessages,
+    clearStreamingMessage,
+    connectionError,
+  } = useWebSocket()
 
   // Ref для автоматического скролла к последнему сообщению
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -67,7 +78,7 @@ export default function Home() {
         })
       }, 200)
     }
-  }, [messages.length, isLoading])
+  }, [messages.length, isLoading, streamingMessages])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,12 +95,13 @@ export default function Home() {
     const tempMessage: Message = {
       id: tempMessageId,
       question: currentQuestion,
-      answer: '', // Пустой ответ пока идет загрузка
+      answer: 'Печатаю ответ...', // Временный текст для поиска
       sources: [],
       hasContext: false,
       sourcesCount: 0,
       timestamp: new Date(),
     }
+
     setMessages((prev) => [...prev, tempMessage])
 
     // Добавляем вопрос пользователя в контекст
@@ -102,54 +114,19 @@ export default function Home() {
       // Получаем контекст для отправки в API
       const context = await getContextForAPI()
 
-      const response = await fetch('/api/ask', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question: currentQuestion,
-          context: context.length > 0 ? context : undefined,
-        }),
-      })
+      // 🚀 STREAMING РЕЖИМ (всегда включен)
+      console.log('🔥 Используем streaming режим')
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data: AskResponse = await response.json()
-
-      const finalMessage: Message = {
-        id: tempMessageId, // Тот же ID чтобы заменить временное сообщение
-        question: currentQuestion,
-        answer: data.answer,
-        sources: data.sources || [],
-        hasContext: data.hasContext,
-        sourcesCount: data.sourcesCount,
-        timestamp: new Date(),
-      }
-
-      // Заменяем временное сообщение на полное
-      setMessages((prev) =>
-        prev.map((msg) => (msg.id === tempMessageId ? finalMessage : msg))
+      const streamingMessageId = await sendStreamingRequest(
+        currentQuestion,
+        context.length > 0 ? context : undefined
       )
 
-      // Добавляем ответ ассистента в контекст
-      await addContextMessage({
-        role: 'assistant',
-        content: data.answer,
-        sources: data.sources,
-      })
-
-      // Автоматически сворачиваем источники для нового сообщения
-      if (data.hasContext && data.sources && data.sources.length > 0) {
-        setCollapsedSources((prev) => new Set([...prev, tempMessageId]))
-      }
+      // Мониторинг теперь через useEffect - см. ниже
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка')
       // Удаляем временное сообщение при ошибке
       setMessages((prev) => prev.filter((msg) => msg.id !== tempMessageId))
-    } finally {
       setIsLoading(false)
     }
   }
@@ -165,6 +142,93 @@ export default function Home() {
       return newSet
     })
   }
+
+  // Получаем текущее streaming сообщение для отображения
+  const getCurrentStreamingContent = (messageId: string): string => {
+    if (!isLoading) return ''
+
+    // Ищем временное сообщение с "Печатаю ответ..."
+    const tempMessage = messages.find(
+      (m) => m.id === messageId && m.answer === 'Печатаю ответ...'
+    )
+    if (!tempMessage) return ''
+
+    // Ищем соответствующее streaming сообщение по вопросу
+    for (const [, streamingMsg] of streamingMessages) {
+      if (streamingMsg.question === tempMessage.question) {
+        const content = streamingMsg.content || ''
+        // Добавляем дебаг только для первых 50 символов
+        if (content.length > 0 && content.length % 50 === 0) {
+          console.log('📝 Streaming content length:', content.length, 'chars')
+        }
+        return content
+      }
+    }
+
+    return ''
+  }
+
+  // Мониторинг завершения стриминга через useEffect
+  useEffect(() => {
+    if (!isLoading) return
+
+    // Проверяем все streaming сообщения на завершение
+    for (const [messageId, streamingMsg] of streamingMessages) {
+      if (streamingMsg?.isComplete) {
+        // Находим соответствующее временное сообщение
+        const tempMessage = messages.find(
+          (m) =>
+            m.answer === 'Печатаю ответ...' &&
+            m.question === streamingMsg.question
+        )
+
+        if (tempMessage) {
+          const sources = streamingMsg.sources || []
+          const finalMessage: Message = {
+            id: tempMessage.id,
+            question: streamingMsg.question,
+            answer: streamingMsg.content,
+            sources: sources,
+            hasContext: sources.length > 0,
+            sourcesCount: sources.length,
+            timestamp: new Date(),
+          }
+
+          // Заменяем временное сообщение на полное
+          setMessages((prev) =>
+            prev.map((msg) => (msg.id === tempMessage.id ? finalMessage : msg))
+          )
+
+          // Добавляем ответ ассистента в контекст
+          addContextMessage({
+            role: 'assistant',
+            content: streamingMsg.content,
+            sources: sources,
+          })
+
+          // Автоматически сворачиваем источники
+          if (sources.length > 0) {
+            setCollapsedSources((prev) => new Set([...prev, tempMessage.id]))
+          }
+
+          // Очищаем streaming сообщение
+          clearStreamingMessage(messageId)
+          setIsLoading(false)
+          break
+        } else {
+          // Принудительно останавливаем загрузку, даже если не нашли сообщение
+          setIsLoading(false)
+          clearStreamingMessage(messageId)
+        }
+      }
+    }
+  }, [
+    streamingMessages,
+    isLoading,
+    messages,
+    addContextMessage,
+    clearStreamingMessage,
+  ])
 
   return (
     <div className='min-h-screen bg-gray-900/40 flex flex-col relative z-10'>
@@ -190,6 +254,15 @@ export default function Home() {
 
                 {/* Centered Input */}
                 <div className='w-full max-w-2xl'>
+                  {/* Connection Error */}
+                  {connectionError && (
+                    <div className='mb-4 text-center'>
+                      <div className='text-xs text-red-400 bg-red-900/30 px-3 py-2 rounded border border-red-700/50 inline-block'>
+                        ⚠️ {connectionError}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Context Status */}
                   {isContextActive && messageCount > 0 && (
                     <div className='mb-4 flex items-center justify-center gap-4'>
@@ -270,8 +343,8 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Answer - показываем только если есть ответ */}
-                {message.answer && (
+                {/* Answer - показываем только если есть ответ или это streaming */}
+                {(message.answer || isLoading) && (
                   <div
                     className={`rounded-lg p-6 border ${
                       message.hasContext
@@ -282,7 +355,7 @@ export default function Home() {
                     <div className='flex items-start gap-3 mb-4'>
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          message.hasContext ? 'bg-purple-600' : 'bg-indigo-600'
+                          message.hasContext ? 'bg-purple-600' : 'bg-yellow-600'
                         }`}
                       >
                         <span className='text-white text-sm font-medium'>
@@ -292,9 +365,24 @@ export default function Home() {
                       <div className='flex-1'>
                         <div className='flex items-center gap-3 mb-2'>
                           <h3 className='text-white font-medium'>Ответ:</h3>
+                          {isLoading && !message.answer && (
+                            <div className='flex items-center gap-2 text-xs text-blue-400'>
+                              <div className='w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin'></div>
+                              <span>Печатаю ответ...</span>
+                            </div>
+                          )}
                         </div>
                         <div className='text-gray-300 leading-relaxed whitespace-pre-wrap'>
-                          {message.answer}
+                          {/* Показываем streaming контент для временных сообщений, иначе готовый ответ */}
+                          {message.answer === 'Печатаю ответ...' && isLoading
+                            ? getCurrentStreamingContent(message.id) ||
+                              'Генерирую ответ...'
+                            : message.answer}
+                          {/* Streaming cursor effect */}
+                          {message.answer === 'Печатаю ответ...' &&
+                            isLoading && (
+                              <span className='inline-block w-2 h-5 bg-blue-400 ml-1 animate-pulse'></span>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -372,23 +460,6 @@ export default function Home() {
             {error && (
               <div className='bg-red-900/60 border border-red-700 rounded-lg p-4'>
                 <p className='text-red-400'>❌ {error}</p>
-              </div>
-            )}
-
-            {/* Loading with AI icon */}
-            {isLoading && (
-              <div className='bg-gray-800/90 rounded-lg p-6 border border-gray-700'>
-                <div className='flex items-start gap-3'>
-                  <div className='w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center flex-shrink-0'>
-                    <span className='text-white text-sm font-medium'>AI</span>
-                  </div>
-                  <div className='flex-1'>
-                    <div className='flex items-center gap-2 text-gray-300'>
-                      <div className='w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
-                      Ищу информацию и генерирую ответ...
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
 

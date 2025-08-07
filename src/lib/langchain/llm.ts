@@ -69,6 +69,35 @@ export async function createCustomLLM(
 }
 
 /**
+ * Create streaming LLM instance for real-time responses
+ * @param options - Custom streaming options
+ * @returns ChatOpenAI instance configured for streaming
+ */
+export async function createStreamingLLM(
+  options: {
+    modelName?: string
+    temperature?: number
+    maxTokens?: number
+  } = {}
+) {
+  // Загружаем настройки по умолчанию из базы данных
+  const defaultModelName = await RAGSettings.getAIModel()
+  const defaultTemperature = await RAGSettings.getTemperature()
+  const defaultMaxTokens = await RAGSettings.getMaxTokens()
+
+  return new ChatOpenAI({
+    openAIApiKey: process.env.OPENAI_API_KEY!,
+    modelName: options.modelName || defaultModelName,
+    temperature: options.temperature ?? defaultTemperature,
+    maxTokens: options.maxTokens ?? defaultMaxTokens,
+    topP: 1.0,
+    frequencyPenalty: 0.0,
+    presencePenalty: 0.0,
+    streaming: true, // Включаем streaming режим
+  })
+}
+
+/**
  * Test LLM connection and basic functionality
  * @returns Promise<boolean> - True if LLM is working
  */

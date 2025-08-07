@@ -3,9 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "concurrently \"node websocket-server.js\" \"next dev --turbopack\"",
+    "dev:next": "next dev --turbopack",
+    "dev:ws": "node websocket-server.js",
     "build": "next build",
-    "start": "next start",
+    "start": "concurrently \"node websocket-server.js\" \"next start\"",
+    "start:next": "next start",
+    "start:ws": "node websocket-server.js",
     "lint": "next lint",
     "seed": "tsx scripts/seed.ts",
     "init-db": "tsx scripts/init-db.ts"
@@ -19,8 +23,10 @@
     "@types/multer": "^2.0.0",
     "@types/sqlite3": "^3.1.11",
     "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
     "@types/xml2js": "^0.4.14",
     "better-sqlite3": "^10.1.0",
+    "concurrently": "^9.2.0",
     "dotenv": "^16.4.5",
     "epub2": "^3.0.2",
     "form-data": "^4.0.4",
@@ -37,9 +43,11 @@
     "pptx2json": "^0.0.10",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "socket.io": "^4.8.1",
     "tiktoken": "^1.0.21",
     "uuid": "^11.1.0",
     "word-extractor": "^1.0.4",
+    "ws": "^8.18.3",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
