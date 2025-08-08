@@ -12,7 +12,8 @@
     "start:ws": "node websocket-server.js",
     "lint": "next lint",
     "seed": "tsx scripts/seed.ts",
-    "init-db": "tsx scripts/init-db.ts"
+    "init-db": "tsx scripts/init-db.ts",
+    "test:pdf": "tsx scripts/test-pdf-batch.ts"
   },
   "dependencies": {
     "@langchain/community": "^0.3.49",
@@ -40,6 +41,8 @@
     "pdf-parse": "^1.1.1",
     "pdf-text-extract": "^1.5.0",
     "pdf2json": "^3.2.0",
+    "pdfjs-dist": "^5.4.54",
+    "pdfreader": "^3.0.7",
     "pptx2json": "^0.0.10",
     "react": "19.1.0",
     "react-dom": "19.1.0",

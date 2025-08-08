@@ -1,0 +1,326 @@
+
+> temp-rag@0.1.0 dev
+> concurrently "node websocket-server.js" "next dev"
+
+[0] 🚀 WebSocket server started on port 3001
+[0] 🌐 WebSocket HTTP bridge started on port 3002
+[1]    ▲ Next.js 15.4.3
+[1]    - Local:        http://localhost:3000
+[1]    - Network:      http://10.8.22.54:3000
+[1]    - Environments: .env.local, .env
+[1] 
+[1]  ✓ Starting...
+[1]  ✓ Ready in 3.1s
+[1]  ○ Compiling /api/upload ...
+[1]  ⨯ ./src/lib/document-processors-clean.ts
+[1] Error:   [31mx[0m Expected a semicolon
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: Buffer): boolean {
+[1]      : [35;1m  ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1]   [31mx[0m Expected ',', got ':'
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: Buffer): boolean {
+[1]      : [35;1m                     ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1] 
+[1] Caused by:
+[1]     Syntax Error
+[1] 
+[1] Import trace for requested module:
+[1] ./src/lib/document-processors-clean.ts
+[1] ./src/app/api/upload/route.ts
+[1]  ⨯ ./src/lib/document-processors-clean.ts
+[1] Error:   [31mx[0m Expected a semicolon
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: Buffer): boolean {
+[1]      : [35;1m  ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1]   [31mx[0m Expected ',', got ':'
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: Buffer): boolean {
+[1]      : [35;1m                     ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1] 
+[1] Caused by:
+[1]     Syntax Error
+[1] 
+[1] Import trace for requested module:
+[1] ./src/lib/document-processors-clean.ts
+[1] ./src/app/api/upload/route.ts
+[1]  ⨯ ./src/lib/document-processors-clean.ts
+[1] Error:   [31mx[0m Expected a semicolon
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: Buffer): boolean {
+[1]      : [35;1m  ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1]   [31mx[0m Expected ',', got ':'
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: Buffer): boolean {
+[1]      : [35;1m                     ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1] 
+[1] Caused by:
+[1]     Syntax Error
+[1] 
+[1] Import trace for requested module:
+[1] ./src/lib/document-processors-clean.ts
+[1] ./src/app/api/upload/route.ts
+[1]  POST /api/upload 500 in 4159ms
+[1]  POST /api/upload 500 in 20ms
+[1]  ⨯ ./src/lib/document-processors-clean.ts
+[1] Error:   [31mx[0m Expected a semicolon
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile = (buffer: Buffer): boolean => {
+[1]      : [35;1m  ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1]   [31mx[0m Unexpected token `class`. Expected * for generator, private key, identifier or async
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:345:1]
+[1]  [2m342[0m |   }
+[1]  [2m343[0m | }
+[1]  [2m344[0m | 
+[1]  [2m345[0m | export class DOCXProcessor implements DocumentProcessor {
+[1]      : [35;1m       ^^^^^[0m
+[1]  [2m346[0m |   supportedMimeTypes = [
+[1]  [2m347[0m |     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+[1]  [2m348[0m |   ]
+[1]      `----
+[1] 
+[1] Caused by:
+[1]     Syntax Error
+[1] 
+[1] Import trace for requested module:
+[1] ./src/lib/document-processors-clean.ts
+[1] ./src/app/api/upload/route.ts
+[1]  ✓ Compiled /_error in 288ms (477 modules)
+[1]  ⨯ ./src/lib/document-processors-clean.ts
+[1] Error:   [31mx[0m Expected a semicolon
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile = (buffer: Buffer): boolean => {
+[1]      : [35;1m  ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1]   [31mx[0m Unexpected token `class`. Expected * for generator, private key, identifier or async
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:345:1]
+[1]  [2m342[0m |   }
+[1]  [2m343[0m | }
+[1]  [2m344[0m | 
+[1]  [2m345[0m | export class DOCXProcessor implements DocumentProcessor {
+[1]      : [35;1m       ^^^^^[0m
+[1]  [2m346[0m |   supportedMimeTypes = [
+[1]  [2m347[0m |     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+[1]  [2m348[0m |   ]
+[1]      `----
+[1] 
+[1] Caused by:
+[1]     Syntax Error
+[1] 
+[1] Import trace for requested module:
+[1] ./src/lib/document-processors-clean.ts
+[1] ./src/app/api/upload/route.ts
+[1]  ⨯ ./src/lib/document-processors-clean.ts
+[1] Error:   [31mx[0m Expected a semicolon
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile = (buffer: Buffer): boolean => {
+[1]      : [35;1m  ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1]   [31mx[0m Unexpected token `class`. Expected * for generator, private key, identifier or async
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:345:1]
+[1]  [2m342[0m |   }
+[1]  [2m343[0m | }
+[1]  [2m344[0m | 
+[1]  [2m345[0m | export class DOCXProcessor implements DocumentProcessor {
+[1]      : [35;1m       ^^^^^[0m
+[1]  [2m346[0m |   supportedMimeTypes = [
+[1]  [2m347[0m |     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+[1]  [2m348[0m |   ]
+[1]      `----
+[1] 
+[1] Caused by:
+[1]     Syntax Error
+[1] 
+[1] Import trace for requested module:
+[1] ./src/lib/document-processors-clean.ts
+[1] ./src/app/api/upload/route.ts
+[1]  ⨯ ./src/lib/document-processors-clean.ts
+[1] Error:   [31mx[0m Expected a semicolon
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile = (buffer: Buffer): boolean => {
+[1]      : [35;1m  ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1]   [31mx[0m Unexpected token `class`. Expected * for generator, private key, identifier or async
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:345:1]
+[1]  [2m342[0m |   }
+[1]  [2m343[0m | }
+[1]  [2m344[0m | 
+[1]  [2m345[0m | export class DOCXProcessor implements DocumentProcessor {
+[1]      : [35;1m       ^^^^^[0m
+[1]  [2m346[0m |   supportedMimeTypes = [
+[1]  [2m347[0m |     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+[1]  [2m348[0m |   ]
+[1]      `----
+[1] 
+[1] Caused by:
+[1]     Syntax Error
+[1] 
+[1] Import trace for requested module:
+[1] ./src/lib/document-processors-clean.ts
+[1] ./src/app/api/upload/route.ts
+[1]  POST /api/upload 500 in 440ms
+[1]  ○ Compiling /_error ...
+[1]  ⨯ ./src/lib/document-processors-clean.ts
+[1] Error:   [31mx[0m Expected a semicolon
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: any) {
+[1]      : [35;1m  ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1]   [31mx[0m Expected ',', got ':'
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: any) {
+[1]      : [35;1m                     ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1] 
+[1] Caused by:
+[1]     Syntax Error
+[1] 
+[1] Import trace for requested module:
+[1] ./src/lib/document-processors-clean.ts
+[1] ./src/app/api/upload/route.ts
+[1]  ⨯ ./src/lib/document-processors-clean.ts
+[1] Error:   [31mx[0m Expected a semicolon
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: any) {
+[1]      : [35;1m  ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1]   [31mx[0m Expected ',', got ':'
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: any) {
+[1]      : [35;1m                     ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1] 
+[1] Caused by:
+[1]     Syntax Error
+[1] 
+[1] Import trace for requested module:
+[1] ./src/lib/document-processors-clean.ts
+[1] ./src/app/api/upload/route.ts
+[1]  POST /api/upload 500 in 24ms
+[1]  ⨯ ./src/lib/document-processors-clean.ts
+[1] Error:   [31mx[0m Expected a semicolon
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: any) {
+[1]      : [35;1m  ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1]   [31mx[0m Expected ',', got ':'
+[1]      ,-[[36;1;4m/Users/rauferk/Documents/WEB_PROJ/nutralogos/src/lib/document-processors-clean.ts[0m:339:1]
+[1]  [2m336[0m |     }
+[1]  [2m337[0m |   }
+[1]  [2m338[0m | 
+[1]  [2m339[0m |   validateFile(buffer: any) {
+[1]      : [35;1m                     ^[0m
+[1]  [2m340[0m |     // PDF файлы начинаются с %PDF
+[1]  [2m341[0m |     return buffer.subarray(0, 4).toString() === '%PDF'
+[1]  [2m342[0m |   }
+[1]      `----
+[1] 
+[1] Caused by:
+[1]     Syntax Error
+[1] 
+[1] Import trace for requested module:
+[1] ./src/lib/document-processors-clean.ts
+[1] ./src/app/api/upload/route.ts
+[1]  GET /api/stats 500 in 395ms
+[0] 🔌 Shutting down WebSocket server...
+[0] ✅ WebSocket server closed
+[0] node websocket-server.js exited with code 0
+[1] [?25h
+[1] next dev exited with code 0

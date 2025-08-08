@@ -30,50 +30,61 @@ export class PDFProcessor implements DocumentProcessor {
   supportedExtensions = ['.pdf']
 
   async extractText(filePath: string, buffer: Buffer): Promise<string> {
-    try {
-      // Попробуем pdf-lib для извлечения текста
-      const { PDFDocument } = await import('pdf-lib')
+    const normalize = (text: string) =>
+      text
+        .replace(/\u00A0/g, ' ')
+        .replace(/[ \t]{2,}/g, ' ')
+        .split('\n')
+        .map((l) => l.replace(/[ \t]+$/g, ''))
+        .join('\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
 
-      const pdfDoc = await PDFDocument.load(buffer)
-      const pages = pdfDoc.getPages()
-
-      let fullText = ''
-
-      // Простое извлечение текста (pdf-lib не поддерживает извлечение текста напрямую)
-      // Но мы можем попробовать извлечь базовую информацию
-      for (let i = 0; i < pages.length; i++) {
-        const page = pages[i]
-        // pdf-lib не поддерживает извлечение текста, нужен другой подход
-        fullText += `Page ${i + 1}\n`
-      }
-
-      // Если pdf-lib не может извлечь текст, попробуем pdf-parse осторожно
-      if (fullText.trim() === '' || fullText.includes('Page ')) {
+    const extractWithPath = (pdfPath: string) =>
+      new Promise<string>((resolve, reject) => {
         try {
-          // Сохраняем текущую рабочую директорию
-          const originalCwd = process.cwd()
-
-          // Временно меняем рабочую директорию на node_modules/pdf-parse
-          const pdfParsePath = require.resolve('pdf-parse')
-          const pdfParseDir = path.dirname(pdfParsePath)
-          process.chdir(pdfParseDir)
-
-          const pdfParse = await import('pdf-parse')
-          const data = await pdfParse.default(buffer)
-
-          // Восстанавливаем рабочую директорию
-          process.chdir(originalCwd)
-
-          return data.text
-        } catch (parseError) {
-          // Если не получается, возвращаем информацию о PDF
-          return `PDF Document with ${pages.length} pages. Text extraction failed: ${parseError.message}`
+          const extract = require('pdf-text-extract')
+          const options = { splitPages: false }
+          extract(pdfPath, options, (err: any, text: string | string[]) => {
+            if (err) return reject(err)
+            const joined = Array.isArray(text) ? text.join('\n\n') : text
+            resolve(normalize(joined || ''))
+          })
+        } catch (e) {
+          reject(e)
         }
+      })
+
+    const fs = await import('fs/promises')
+    const os = await import('os')
+    const pathMod = await import('path')
+
+    let tempFile: string | null = null
+    try {
+      const hasPath = filePath && filePath.length > 0
+      if (hasPath) {
+        try {
+          await fs.stat(filePath)
+          const text = await extractWithPath(filePath)
+          if (text && text.trim()) return text
+        } catch {}
       }
 
-      return fullText
-    } catch (error) {
+      const tmpDir = await fs.mkdtemp(pathMod.join(os.tmpdir(), 'pdfx-'))
+      tempFile = pathMod.join(tmpDir, 'input.pdf')
+      await fs.writeFile(tempFile, buffer)
+      const text = await extractWithPath(tempFile)
+      return text
+    } catch (error: any) {
       throw new Error(`PDF processing failed: ${error.message}`)
+    } finally {
+      if (tempFile) {
+        try {
+          const { dirname } = await import('path')
+          await fs.unlink(tempFile)
+          await fs.rmdir(dirname(tempFile)).catch(() => {})
+        } catch {}
+      }
     }
   }
 
