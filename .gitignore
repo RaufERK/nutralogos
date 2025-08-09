@@ -43,3 +43,11 @@ next-env.d.ts
 uploads
 test-files
 test-data
+ 
+# sqlite databases (local/runtime)
+/data/rag-chat.db
+/data/rag-chat.db-wal
+/data/rag-chat.db-shm
+/database.sqlite
+/database.sqlite-wal
+/database.sqlite-shm
