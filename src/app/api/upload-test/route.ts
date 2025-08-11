@@ -26,8 +26,11 @@ export async function POST(request: NextRequest) {
       type: file.type,
       preview: text,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [UPLOAD-TEST] Error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal error' },
+      { status: 500 }
+    )
   }
 }
