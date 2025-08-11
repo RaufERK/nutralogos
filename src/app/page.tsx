@@ -197,7 +197,11 @@ export default function Home() {
           addContextMessage({
             role: 'assistant',
             content: streamingMsg.content,
-            sources: sources,
+            sources: sources.map((s) => ({
+              id: String(s.id),
+              content: s.content,
+              metadata: s.metadata as Record<string, unknown> | undefined,
+            })),
           })
 
           // Автоматически сворачиваем источники
