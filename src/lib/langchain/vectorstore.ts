@@ -66,23 +66,22 @@ export async function searchSimilarDocuments(
     scoreThreshold ?? (await RAGSettings.getScoreThreshold())
   try {
     const vectorStore = getVectorStore()
-    const results = await vectorStore.similaritySearchWithScore(
-      query,
-      defaultK,
-      {
-        scoreThreshold: defaultScoreThreshold,
-      }
+    const results = await vectorStore.similaritySearchWithScore(query, defaultK)
+
+    const filtered = results.filter(([, score]) =>
+      typeof score === 'number' ? score >= defaultScoreThreshold : true
     )
 
-    return results.map(([document, score]) => ({
+    return filtered.map(([document, score]) => ({
       document,
       score,
       content: document.pageContent,
       metadata: document.metadata,
     }))
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Error searching documents:', error)
-    throw new Error(`Vector search failed: ${error.message}`)
+    const msg = error instanceof Error ? error.message : String(error)
+    throw new Error(`Vector search failed: ${msg}`)
   }
 }
 
