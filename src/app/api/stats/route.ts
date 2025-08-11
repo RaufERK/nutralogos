@@ -108,13 +108,13 @@ export async function GET() {
       success: true,
       stats,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [STATS] Error generating statistics:', error)
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to generate statistics',
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     )
