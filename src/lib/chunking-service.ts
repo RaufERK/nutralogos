@@ -66,10 +66,10 @@ export class ChunkingService {
     const options = await this.getChunkingOptions()
 
     return {
-      chunkSizeTokens: options.chunkSize,
-      chunkOverlapTokens: options.chunkOverlap,
-      preserveStructure: options.preserveStructure,
-      estimatedCharsPerChunk: options.chunkSize * 3.5, // примерно 1 токен = 3.5 символа
+      chunkSizeTokens: options.chunkSize ?? 1000,
+      chunkOverlapTokens: options.chunkOverlap ?? 200,
+      preserveStructure: options.preserveStructure ?? true,
+      estimatedCharsPerChunk: (options.chunkSize ?? 1000) * 3.5, // примерно 1 токен = 3.5 символа
     }
   }
 }
