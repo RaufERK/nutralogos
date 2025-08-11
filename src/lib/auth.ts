@@ -46,7 +46,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (token && typeof token === 'object' && 'role' in token) {
-        ;(session.user as Record<string, unknown>).role = (token as Record<string, unknown>).role
+        const tokenRole = (token as { [key: string]: unknown }).role
+        if (typeof tokenRole === 'string') {
+          ;(session.user as unknown as { role?: string }).role = tokenRole
+        }
       }
       return session
     },
