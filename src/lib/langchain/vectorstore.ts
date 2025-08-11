@@ -146,12 +146,11 @@ export async function createRetriever(
 
   // Use database settings if not provided
   const k = options.k ?? (await RAGSettings.getRetrievalK())
-  const scoreThreshold =
-    options.scoreThreshold ?? (await RAGSettings.getScoreThreshold())
+  // const scoreThreshold = options.scoreThreshold ?? (await RAGSettings.getScoreThreshold())
 
   return vectorStore.asRetriever({
     k,
-    scoreThreshold,
-    searchType: 'similarity_score_threshold',
+    // scoreThreshold not supported in this retriever type; we filter in app logic
+    searchType: 'similarity',
   })
 }
