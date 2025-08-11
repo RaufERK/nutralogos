@@ -32,14 +32,14 @@ module.exports = {
   deploy: {
     production: {
       user: 'appuser',
-      host: '185.200.178.73',                    // или твой ssh-алиас
+      host: 'amster', // или IP
       ref: 'origin/main',
       repo: 'git@github.com:YOUR_ORG/YOUR_REPO.git',
-      path: '/home/appuser/apps/nutralogos',     // PM2 создаст releases/ и current
+      path: '/home/appuser/apps/nutralogos',
       'pre-deploy-local': '',
       'post-deploy': [
         'source ~/.nvm/nvm.sh && nvm use --lts',
-        // shared .env (см. шаги ниже)
+        // важнo: линк .env ДО сборки
         'ln -sf /home/appuser/shared/nutralogos/.env.production ./.env.production || true',
         'npm ci',
         'npm run build',
