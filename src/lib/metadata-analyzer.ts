@@ -121,8 +121,12 @@ export async function analyzeTextWithLLM(
       ? response.content
       : Array.isArray(response.content)
       ? response.content
-          .map((c: { text?: string } | string) =>
-            typeof c === 'string' ? c : c.text || ''
+          .map((c) =>
+            typeof c === 'string'
+              ? c
+              : typeof c === 'object' && c && 'text' in c
+              ? String((c as { text?: unknown }).text || '')
+              : ''
           )
           .join('\n')
       : ''
