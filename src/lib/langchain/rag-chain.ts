@@ -137,10 +137,12 @@ export class EnhancedSpiritualRAGChain {
       const context = formatEnhancedContextForPrompt(rerankedDocs)
 
       // Step 4: Generate response
-      const response = await this.llm.invoke([
+      const llm = this.llm!
+      const prompt = this.prompt!
+      const response = await llm.invoke([
         {
           role: 'system',
-          content: await this.prompt.format({
+          content: await prompt.format({
             context,
             question: options.query,
           }),
