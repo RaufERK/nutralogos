@@ -37,40 +37,46 @@ export default function UploadPage() {
     loadMaxFileSize()
   }, [])
 
-  const validateFile = useCallback((file: File): string | null => {
-    const maxSize = maxFileSizeMB * 1024 * 1024 // Динамический размер из настроек
-    const allowedTypes = [
-      'application/pdf', // ✅ PDF - работает стабильно
-      'text/plain', // ✅ TXT - работает отлично
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // ✅ DOCX - работает отлично
-      'application/msword', // ✅ DOC - работает стабильно
-    ]
+  const validateFile = useCallback(
+    (file: File): string | null => {
+      const maxSize = maxFileSizeMB * 1024 * 1024 // Динамический размер из настроек
+      const allowedTypes = [
+        'application/pdf', // ✅ PDF - работает стабильно
+        'text/plain', // ✅ TXT - работает отлично
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // ✅ DOCX - работает отлично
+        'application/msword', // ✅ DOC - работает стабильно
+      ]
 
-    if (file.size > maxSize) {
-      return `Файл слишком большой (максимум ${maxFileSizeMB}MB)`
-    }
-
-    if (!allowedTypes.includes(file.type)) {
-      return 'Неподдерживаемый тип файла. Поддерживаются: PDF, TXT, DOCX, DOC'
-    }
-
-    return null
-  }, [maxFileSizeMB])
-
-  const handleFiles = useCallback((fileList: FileList) => {
-    const newFiles: UploadFile[] = Array.from(fileList).map((file) => {
-      const error = validateFile(file)
-      return {
-        id: generateId(),
-        file,
-        status: error ? 'error' : 'pending',
-        progress: 0,
-        error: error || undefined,
+      if (file.size > maxSize) {
+        return `Файл слишком большой (максимум ${maxFileSizeMB}MB)`
       }
-    })
 
-    setFiles((prev) => [...prev, ...newFiles])
-  }, [validateFile])
+      if (!allowedTypes.includes(file.type)) {
+        return 'Неподдерживаемый тип файла. Поддерживаются: PDF, TXT, DOCX, DOC'
+      }
+
+      return null
+    },
+    [maxFileSizeMB]
+  )
+
+  const handleFiles = useCallback(
+    (fileList: FileList) => {
+      const newFiles: UploadFile[] = Array.from(fileList).map((file) => {
+        const error = validateFile(file)
+        return {
+          id: generateId(),
+          file,
+          status: error ? 'error' : 'pending',
+          progress: 0,
+          error: error || undefined,
+        }
+      })
+
+      setFiles((prev) => [...prev, ...newFiles])
+    },
+    [validateFile]
+  )
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -139,11 +145,15 @@ export default function UploadPage() {
             )
           )
         } else {
-          const error = await response.json()
+          const errPayload = await response.json()
           setFiles((prev) =>
             prev.map((f) =>
               f.id === fileData.id
-                ? { ...f, status: 'error', error: error.message }
+                ? {
+                    ...f,
+                    status: 'error',
+                    error: String(errPayload.message || 'Ошибка загрузки'),
+                  }
                 : f
             )
           )

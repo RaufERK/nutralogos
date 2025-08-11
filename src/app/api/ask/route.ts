@@ -100,8 +100,24 @@ ${contextString}
           },
         ])
 
+        const rawContent = (response as { content?: unknown }).content
+        const content =
+          typeof rawContent === 'string'
+            ? rawContent
+            : Array.isArray(rawContent)
+            ? (rawContent as Array<unknown>)
+                .map((c) =>
+                  typeof c === 'string'
+                    ? c
+                    : typeof c === 'object' && c && 'text' in c
+                    ? String((c as { text?: unknown }).text || '')
+                    : ''
+                )
+                .join('')
+            : String(rawContent ?? '')
+
         ragResult = {
-          text: response.content,
+          text: content,
           sourceDocuments: [],
           relevanceScores: [],
         }
@@ -117,7 +133,7 @@ ${contextString}
 
     // 3. Convert LangChain documents to our format for compatibility
     const sources: Document[] = ragResult.sourceDocuments.map((doc, index) => ({
-      id: doc.metadata?.id || `doc_${index}`,
+      id: String((doc.metadata as Record<string, unknown> | undefined)?.id ?? `doc_${index}`),
       content: doc.content || doc.pageContent || '',
       metadata: {
         ...doc.metadata,
