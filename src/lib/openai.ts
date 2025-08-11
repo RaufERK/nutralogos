@@ -29,7 +29,7 @@ ${context}
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const OPENAI_EMBEDDING_MODEL =
-  process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-ada-002'
+  process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small'
 const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o'
 
 if (!OPENAI_API_KEY) {

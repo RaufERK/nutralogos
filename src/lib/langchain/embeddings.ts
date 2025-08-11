@@ -14,6 +14,8 @@ const openai = new OpenAI({
   timeout: 30000, // 30 second timeout
 })
 
+const EMBEDDING_MODEL = process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small'
+
 /**
  * Direct OpenAI API embedding function with caching and rate limiting
  * @param text - Text to embed
@@ -42,7 +44,7 @@ export async function getEmbeddingVector(text: string): Promise<number[]> {
     )
 
     const response = await openai.embeddings.create({
-      model: 'text-embedding-ada-002',
+      model: EMBEDDING_MODEL,
       input: text,
     })
 
@@ -111,7 +113,7 @@ export async function getEmbeddingVectors(
       }
 
       const response = await openai.embeddings.create({
-        model: 'text-embedding-ada-002',
+        model: EMBEDDING_MODEL,
         input: batch,
       })
 

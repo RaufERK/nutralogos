@@ -205,7 +205,7 @@
     {
       "id": 486,
       "parameter_name": "chunk_size",
-      "parameter_value": "1000",
+      "parameter_value": "600",
       "default_value": "1000",
       "parameter_type": "number",
       "display_name": "Chunk Size",
@@ -223,7 +223,7 @@
     {
       "id": 487,
       "parameter_name": "chunk_overlap",
-      "parameter_value": "200",
+      "parameter_value": "100",
       "default_value": "200",
       "parameter_type": "number",
       "display_name": "Chunk Overlap",
@@ -241,8 +241,8 @@
     {
       "id": 503,
       "parameter_name": "embedding_model",
-      "parameter_value": "text-embedding-3-small",
-      "default_value": "text-embedding-3-small",
+      "parameter_value": "text-embedding-ada-002",
+      "default_value": "text-embedding-ada-002",
       "parameter_type": "string",
       "display_name": "Embedding Model",
       "description": "Модель эмбеддинга, используемая для преобразования текста в векторы",
@@ -277,8 +277,8 @@
     {
       "id": 505,
       "parameter_name": "max_chunks_per_file",
-      "parameter_value": "100",
-      "default_value": "100",
+      "parameter_value": "500",
+      "default_value": "50",
       "parameter_type": "number",
       "display_name": "Max Chunks Per File",
       "description": "Максимальное количество чанков, извлекаемых из одного файла",
@@ -295,7 +295,7 @@
     {
       "id": 506,
       "parameter_name": "preserve_text_structure",
-      "parameter_value": "true",
+      "parameter_value": "false",
       "default_value": "true",
       "parameter_type": "boolean",
       "display_name": "Preserve Text Structure",
@@ -315,7 +315,7 @@
     {
       "id": 478,
       "parameter_name": "retrieval_k",
-      "parameter_value": "8",
+      "parameter_value": "4",
       "default_value": "8",
       "parameter_type": "number",
       "display_name": "Retrieval K",
@@ -333,7 +333,7 @@
     {
       "id": 482,
       "parameter_name": "context_max_length",
-      "parameter_value": "8000",
+      "parameter_value": "4000",
       "default_value": "8000",
       "parameter_type": "number",
       "display_name": "Context Max Length",
@@ -351,7 +351,7 @@
     {
       "id": 479,
       "parameter_name": "score_threshold",
-      "parameter_value": "0.3",
+      "parameter_value": "0.7",
       "default_value": "0.3",
       "parameter_type": "number",
       "display_name": "Score Threshold",
@@ -407,8 +407,8 @@
     {
       "id": 484,
       "parameter_name": "max_file_size_mb",
-      "parameter_value": "50",
-      "default_value": "50",
+      "parameter_value": "500",
+      "default_value": "5000",
       "parameter_type": "number",
       "display_name": "Max File Size (MB)",
       "description": "Максимально допустимый размер загружаемого файла в мегабайтах",
@@ -424,3 +424,5 @@
     }
   ]
 }
+
+
