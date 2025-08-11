@@ -15,7 +15,8 @@ export default function LoginPage() {
   // Если пользователь уже авторизован - перенаправляем в админку
   // Middleware тоже это делает, но для клиентской навигации нужно и здесь
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.role === 'admin') {
+    const userRole = (session?.user as { role?: string } | undefined)?.role
+    if (status === 'authenticated' && userRole === 'admin') {
       router.push('/admin')
     }
   }, [session, status, router])
