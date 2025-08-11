@@ -12,7 +12,6 @@
     "start:ws": "node websocket-server.js",
     "lint": "next lint",
     "seed": "tsx scripts/seed-settings.ts",
-    "seed:settings": "tsx scripts/seed-settings.ts",
     "init-db": "tsx scripts/init-db.ts",
     "test:pdf": "tsx scripts/test-pdf-batch.ts",
     "export-and-reset": "tsx scripts/export-settings-and-reset.ts"
