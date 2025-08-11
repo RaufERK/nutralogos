@@ -179,18 +179,24 @@ export async function POST(request: NextRequest) {
         processor: processor.constructor.name,
         nextStep: 'Use "Sync with Vector DB" button to process for search',
       })
-    } catch (storageError) {
+    } catch (storageError: unknown) {
       console.error('❌ [UPLOAD] Storage error:', storageError)
       return NextResponse.json(
         {
           error: 'Failed to save file to library',
-          details: storageError.message,
+          details:
+            storageError instanceof Error
+              ? storageError.message
+              : String(storageError),
         },
         { status: 500 }
       )
     }
   } catch (error) {
     console.error('❌ [UPLOAD] Error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal error' },
+      { status: 500 }
+    )
   }
 }
