@@ -12,7 +12,7 @@ export async function createSpiritualRAGChain() {
   const retrievalK = await RAGSettings.getRetrievalK()
   const scoreThreshold = await RAGSettings.getScoreThreshold()
 
-  const retriever = createRetriever({
+  const retriever = await createRetriever({
     k: retrievalK, // Из настроек retrieval_k
     scoreThreshold: scoreThreshold, // Из настроек score_threshold
   })
