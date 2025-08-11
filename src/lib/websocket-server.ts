@@ -209,5 +209,5 @@ export function getWebSocketServer(): StreamingWebSocketServer {
 
 /**
  * Типы для использования в других модулях
+ * Интерфейс WSMessage уже экспортирован выше
  */
-export type { WSMessage }
