@@ -63,20 +63,21 @@ export async function getEmbeddingVector(text: string): Promise<number[]> {
     }
 
     return result
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [EMBEDDINGS] Error getting embedding:', error)
 
     // Handle specific OpenAI errors
-    if (error.message.includes('rate_limit')) {
+    const msg = error instanceof Error ? error.message : String(error)
+    if (msg.includes('rate_limit')) {
       throw new Error('OpenAI API rate limit exceeded. Please try again later.')
-    } else if (error.message.includes('quota')) {
+    } else if (msg.includes('quota')) {
       throw new Error('OpenAI API quota exceeded. Please check your account.')
-    } else if (error.message.includes('authentication')) {
+    } else if (msg.includes('authentication')) {
       throw new Error(
         'OpenAI API authentication failed. Please check your API key.'
       )
     } else {
-      throw new Error(`Embedding generation failed: ${error.message}`)
+      throw new Error(`Embedding generation failed: ${msg}`)
     }
   }
 }
@@ -139,9 +140,10 @@ export async function getEmbeddingVectors(
       `✅ [EMBEDDINGS] Successfully generated ${results.length} embeddings in ${totalTime}ms`
     )
     return results
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [EMBEDDINGS] Error getting embeddings:', error)
-    throw new Error(`Batch embedding generation failed: ${error.message}`)
+    const msg = error instanceof Error ? error.message : String(error)
+    throw new Error(`Batch embedding generation failed: ${msg}`)
   }
 }
 
