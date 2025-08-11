@@ -167,9 +167,11 @@ export function formatEnhancedContextForPrompt(documents: PromptDoc[]): string {
   documents.forEach((doc, index) => {
     const content = doc.content || doc.pageContent || ''
     const metadata = doc.metadata || {}
-    const score = (doc as unknown as { score?: number }).score
-      ? ` (релевантность: ${Math.round(doc.score * 100)}%)`
-      : ''
+    const rawScore = (doc as unknown as { score?: number }).score
+    const score =
+      typeof rawScore === 'number'
+        ? ` (релевантность: ${Math.round(rawScore * 100)}%)`
+        : ''
 
     context += `📖 Источник ${index + 1}${score}\n`
 
