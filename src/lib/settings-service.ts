@@ -297,9 +297,12 @@ export class SettingsService {
 
       // Basic type validation
       switch (setting.parameter_type) {
-        case 'number':
-          if (isNaN(convertedValue)) return false
+        case 'number': {
+          if (!(typeof convertedValue === 'number') || Number.isNaN(convertedValue)) {
+            return false
+          }
           break
+        }
         case 'boolean':
           if (typeof convertedValue !== 'boolean') return false
           break
