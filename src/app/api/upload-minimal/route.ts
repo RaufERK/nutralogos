@@ -34,8 +34,11 @@ export async function POST(request: NextRequest) {
       message:
         'File received but not processed (only TXT supported in minimal mode)',
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [MINIMAL UPLOAD] Error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal error' },
+      { status: 500 }
+    )
   }
 }
