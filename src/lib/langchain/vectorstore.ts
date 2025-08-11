@@ -119,11 +119,13 @@ export async function addDocuments(
     console.log(`🔍 [QDRANT] Generated IDs:`, generatedIds)
 
     return generatedIds
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [QDRANT] Error adding documents:', error)
-    console.error('❌ [QDRANT] Error details:', error.message)
-    console.error('❌ [QDRANT] Error stack:', error.stack)
-    throw new Error(`Failed to add documents: ${error.message}`)
+    const msg = error instanceof Error ? error.message : String(error)
+    const stack = error instanceof Error ? error.stack : undefined
+    if (msg) console.error('❌ [QDRANT] Error details:', msg)
+    if (stack) console.error('❌ [QDRANT] Error stack:', stack)
+    throw new Error(`Failed to add documents: ${msg}`)
   }
 }
 
