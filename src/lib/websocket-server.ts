@@ -28,7 +28,7 @@ export class StreamingWebSocketServer {
 
     this.wss = new WebSocketServer({
       port,
-      verifyClient: (info) => {
+      verifyClient: (info: { origin?: string }) => {
         // Базовая проверка origin для безопасности
         const origin = info.origin
         const allowedOrigins = [
