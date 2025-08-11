@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+// import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 interface UploadFile {
@@ -65,7 +65,7 @@ export default function UploadPage() {
         file,
         status: error ? 'error' : 'pending',
         progress: 0,
-        error,
+        error: error || undefined,
       }
     })
 

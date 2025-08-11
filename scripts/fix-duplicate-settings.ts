@@ -174,7 +174,11 @@ async function fixDuplicateSettings() {
       ORDER BY category, ui_order, parameter_name
     `
     )
-    .all()
+    .all() as Array<{
+    category: string
+    parameter_name: string
+    display_name: string
+  }>
 
   let currentCategory = ''
   for (const setting of finalStructure) {

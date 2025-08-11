@@ -11,9 +11,14 @@ export class FileUtils {
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
-    
-    const datePath = path.join(FILE_CONFIG.UPLOADS_DIR, String(year), month, day)
-    
+
+    const datePath = path.join(
+      FILE_CONFIG.UPLOADS_DIR,
+      String(year),
+      month,
+      day
+    )
+
     await fs.mkdir(datePath, { recursive: true })
     return datePath
   }
@@ -25,13 +30,15 @@ export class FileUtils {
     const ext = path.extname(originalName)
     const baseName = path.basename(originalName, ext)
     const uuid = randomUUID()
-    
+
     // Ограничиваем длину имени файла
-    const maxBaseLength = FILE_CONFIG.MAX_FILENAME_LENGTH - ext.length - uuid.length - 2
-    const truncatedBase = baseName.length > maxBaseLength 
-      ? baseName.substring(0, maxBaseLength) 
-      : baseName
-    
+    const maxBaseLength =
+      FILE_CONFIG.MAX_FILENAME_LENGTH - ext.length - uuid.length - 2
+    const truncatedBase =
+      baseName.length > maxBaseLength
+        ? baseName.substring(0, maxBaseLength)
+        : baseName
+
     return `${truncatedBase}_${uuid}${ext}`
   }
 
@@ -42,8 +49,14 @@ export class FileUtils {
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
-    
-    return path.join(FILE_CONFIG.UPLOADS_DIR, String(year), month, day, filename)
+
+    return path.join(
+      FILE_CONFIG.UPLOADS_DIR,
+      String(year),
+      month,
+      day,
+      filename
+    )
   }
 
   /**
@@ -62,7 +75,7 @@ export class FileUtils {
       free: 1024 * 1024 * 1024 * 10, // 10GB
       total: 1024 * 1024 * 1024 * 100, // 100GB
       used: 1024 * 1024 * 1024 * 90, // 90GB
-      percentage: 90
+      percentage: 90,
     }
   }
 
@@ -84,7 +97,11 @@ export class FileUtils {
     }
 
     // Проверка типа
-    if (!FILE_CONFIG.ALLOWED_MIME_TYPES.includes(file.mimetype as any)) {
+    if (
+      !FILE_CONFIG.ALLOWED_MIME_TYPES.includes(
+        file.mimetype as unknown as (typeof FILE_CONFIG.ALLOWED_MIME_TYPES)[number]
+      )
+    ) {
       return { valid: false, error: 'Неподдерживаемый тип файла' }
     }
 
@@ -102,7 +119,7 @@ export class FileUtils {
   static async createTempFolder(): Promise<string> {
     const tempId = randomUUID()
     const tempPath = path.join(FILE_CONFIG.PROCESSING_DIR, tempId)
-    
+
     await fs.mkdir(tempPath, { recursive: true })
     return tempPath
   }
@@ -111,7 +128,7 @@ export class FileUtils {
    * Перемещает файл в финальную папку
    */
   static async moveToFinalLocation(
-    tempPath: string, 
+    tempPath: string,
     finalPath: string
   ): Promise<void> {
     await fs.mkdir(path.dirname(finalPath), { recursive: true })
@@ -135,12 +152,12 @@ export class FileUtils {
    */
   static async getFolderSize(folderPath: string): Promise<number> {
     let totalSize = 0
-    
+
     const files = await fs.readdir(folderPath, { withFileTypes: true })
-    
+
     for (const file of files) {
       const filePath = path.join(folderPath, file.name)
-      
+
       if (file.isDirectory()) {
         totalSize += await this.getFolderSize(filePath)
       } else {
@@ -148,7 +165,7 @@ export class FileUtils {
         totalSize += stats.size
       }
     }
-    
+
     return totalSize
   }
-} 
+}

@@ -89,7 +89,17 @@ export async function POST(request: NextRequest) {
     await writeFile(filePath, buffer)
     console.log(`💾 [UPLOAD] File saved to: ${filePath}`)
 
-    let processedFile: any // Временно используем any для отладки
+    type ProcessedChunk = { content: string }
+    type ProcessedFile = {
+      hash: string
+      metadata: Record<string, unknown> & {
+        format?: string
+        processor?: string
+        title?: string
+      }
+      chunks: ProcessedChunk[]
+    }
+    let processedFile: ProcessedFile
     try {
       // Process file with new multi-format system
       console.log(

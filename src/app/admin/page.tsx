@@ -152,7 +152,7 @@ export default async function AdminPage() {
                 .{format.toLowerCase()}
               </span>
               <span className='text-sm text-gray-500 dark:text-gray-400'>
-                {count} файлов
+                {String(count)} файлов
               </span>
             </div>
           ))}

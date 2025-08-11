@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { documentProcessorFactory } from '@/lib/document-processors'
+import { documentProcessorFactory } from '@/lib/document-processors-clean'
 
 export async function POST(request: NextRequest) {
   try {

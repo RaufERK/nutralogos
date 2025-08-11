@@ -1,7 +1,16 @@
 import path from 'path'
-import pdfParse from 'pdf-parse'
+/* Legacy processor removed: use document-processors-clean instead */
+// This file is kept only to avoid import breakage. Prefer document-processors-clean.
 import mammoth from 'mammoth'
-const WordExtractor = require('word-extractor')
+import WordExtractorMod from 'word-extractor'
+const WordExtractor = ((WordExtractorMod as unknown as { default?: unknown })
+  .default ?? (WordExtractorMod as unknown)) as new () => {
+  extract: (buf: unknown) => Promise<{
+    getBody(): string
+    getFootnotes(): string
+    getEndnotes(): string
+  }>
+}
 
 export interface DocumentProcessor {
   supportedMimeTypes: string[]
@@ -10,17 +19,15 @@ export interface DocumentProcessor {
   validateFile(buffer: Buffer): boolean
 }
 
+// PDF parsing is handled in document-processors-clean via pdf-text-extract
 export class PDFProcessor implements DocumentProcessor {
   supportedMimeTypes = ['application/pdf']
   supportedExtensions = ['.pdf']
-
-  async extractText(filePath: string, buffer: Buffer): Promise<string> {
-    const pdfData = await pdfParse(buffer)
-    return pdfData.text
+  async extractText(): Promise<string> {
+    throw new Error('Use document-processors-clean PDFProcessor')
   }
-
-  validateFile(buffer: Buffer): boolean {
-    return buffer.subarray(0, 4).toString() === '%PDF'
+  validateFile(): boolean {
+    return false
   }
 }
 
@@ -49,7 +56,11 @@ export class DOCXProcessor implements DocumentProcessor {
   supportedExtensions = ['.docx']
 
   async extractText(filePath: string, buffer: Buffer): Promise<string> {
-    const result = await mammoth.extractRawText({ buffer })
+    const result = await (
+      mammoth as unknown as {
+        extractRawText: (opts: { buffer: Buffer }) => Promise<{ value: string }>
+      }
+    ).extractRawText({ buffer })
     return result.value
   }
 
@@ -65,7 +76,7 @@ export class DOCProcessor implements DocumentProcessor {
 
   async extractText(filePath: string, buffer: Buffer): Promise<string> {
     const extractor = new WordExtractor()
-    const extracted = await extractor.extract(buffer)
+    const extracted = await extractor.extract(buffer as unknown as string)
     const body = extracted.getBody()
 
     // Также извлекаем footnotes и endnotes если есть

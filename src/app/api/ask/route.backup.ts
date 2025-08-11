@@ -81,8 +81,10 @@ function formatEnhancedContext(documents: Document[]): string | undefined {
         }]`
       : '[unknown/unknown]'
     const relevanceInfo =
-      'relevanceScore' in doc
-        ? ` (Релевантность: ${(doc as any).relevanceScore})`
+      'relevanceScore' in (doc as unknown as { relevanceScore?: number })
+        ? ` (Релевантность: ${
+            (doc as unknown as { relevanceScore?: number }).relevanceScore ?? 0
+          })`
         : ''
     return `--- Источник ${
       index + 1
@@ -108,7 +110,7 @@ export async function POST(request: NextRequest) {
     const questionEmbedding = await getEmbedding(question)
 
     // 2. Ищем похожие документы в Qdrant
-    let similarDocuments: any[] = []
+    let similarDocuments: Document[] = []
     let hasQdrantError = false
 
     try {

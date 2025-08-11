@@ -20,15 +20,15 @@ if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
     'pdf2json',
   ]
 
-  console.warn = (...args: any[]) => {
+  console.warn = (...args: unknown[]) => {
     const msg = args[0]?.toString() || ''
     if (suppressPatterns.some((pattern) => msg.includes(pattern))) {
       return
     }
-    originalWarn(...args)
+    originalWarn(...(args as []))
   }
 
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     const msg = args[0]?.toString() || ''
     // Не подавляем критические ошибки, только PDF warnings
     if (
@@ -37,10 +37,8 @@ if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
     ) {
       return
     }
-    originalError(...args)
+    originalError(...(args as []))
   }
 }
 
 export {}
-
-

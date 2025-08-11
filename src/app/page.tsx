@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { AskResponse, Document } from '@/lib/types'
+import { Document } from '@/lib/types'
 import { useChatContext } from '@/hooks/useChatContext'
 import { useWebSocket } from '@/hooks/useWebSocket'
 

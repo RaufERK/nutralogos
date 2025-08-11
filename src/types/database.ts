@@ -33,7 +33,7 @@ export interface UploadLog {
   action: LogAction
   status: LogStatus
   message: string | null
-  details: any | null
+  details: Record<string, unknown> | null
   timestamp: string
 }
 
@@ -47,4 +47,4 @@ export interface ChunkRecord {
   content: string
   qdrant_point_id: string | null
   created_at: string
-} 
+}

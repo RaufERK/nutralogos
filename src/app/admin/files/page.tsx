@@ -1,19 +1,20 @@
 import Link from 'next/link'
 import { ProcessedFilesRepository } from '@/lib/processed-files-repository'
-import { Suspense } from 'react'
 import StatusFilter from './components/StatusFilter'
 
-interface FilesPageProps {
-  searchParams: {
-    page?: string
-    status?: string
-  }
+type FilesPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
 export default async function FilesPage({ searchParams }: FilesPageProps) {
-  const resolvedSearchParams = await searchParams
-  const page = parseInt(resolvedSearchParams.page || '1')
-  const statusFilter = resolvedSearchParams.status || 'all'
+  const sp = await searchParams
+  const pageParam = sp?.page
+  const statusParam = sp?.status
+  const page = parseInt(
+    (Array.isArray(pageParam) ? pageParam[0] : pageParam) || '1'
+  )
+  const statusFilter =
+    (Array.isArray(statusParam) ? statusParam[0] : statusParam) || 'all'
 
   const { files, total, pages, currentPage } =
     await ProcessedFilesRepository.getFilesPaginated(

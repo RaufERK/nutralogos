@@ -46,10 +46,10 @@ async function cleanupDuplicateFiles() {
             orphanedFiles++
           }
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.warn(
           `⚠️  Could not process folder ${dateFolder}:`,
-          error.message
+          error instanceof Error ? error.message : String(error)
         )
       }
     }

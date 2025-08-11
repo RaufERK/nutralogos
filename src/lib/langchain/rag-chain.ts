@@ -58,10 +58,26 @@ export async function createSpiritualRAGChain() {
  * Enhanced RAG chain with custom document processing
  * Includes re-ranking and enhanced context formatting
  */
+type RetrievedDoc = {
+  pageContent?: string
+  content?: string
+  metadata?: Record<string, unknown>
+  score?: number
+}
+type Retriever = {
+  getRelevantDocuments: (query: string) => Promise<RetrievedDoc[]>
+}
+
+type LLM = {
+  invoke: (input: unknown) => Promise<{ content: string }>
+}
+
 export class EnhancedSpiritualRAGChain {
-  private retriever: any
-  private llm: any
-  private prompt: any
+  private retriever: Retriever | null
+  private llm: LLM | null
+  private prompt: {
+    format: (input: { context: string; question: string }) => Promise<string>
+  } | null
 
   constructor() {
     // Initialize with default values, will be updated in call method
@@ -83,7 +99,7 @@ export class EnhancedSpiritualRAGChain {
     })
 
     if (!this.llm) {
-      this.llm = await createLLM()
+      this.llm = (await createLLM()) as unknown as LLM
     }
     // Всегда пересоздаём prompt чтобы получить актуальные настройки
     const spiritualEnabled = await RAGSettings.isSpiritualPromptEnabled()
@@ -95,7 +111,7 @@ export class EnhancedSpiritualRAGChain {
    */
   async call(options: { query: string }): Promise<{
     text: string
-    sourceDocuments: any[]
+    sourceDocuments: RetrievedDoc[]
     relevanceScores: number[]
   }> {
     try {
@@ -103,7 +119,7 @@ export class EnhancedSpiritualRAGChain {
       await this.initialize()
 
       // Step 1: Retrieve documents
-      const retrievedDocs = await this.retriever.getRelevantDocuments(
+      const retrievedDocs = await this.retriever!.getRelevantDocuments(
         options.query
       )
 
@@ -151,9 +167,20 @@ export class EnhancedSpiritualRAGChain {
    * This implements our custom re-ranking logic from the original system
    */
   private async reRankDocuments(
-    documents: any[],
+    documents: Array<{
+      pageContent?: string
+      metadata?: Record<string, unknown>
+      score?: number
+    }>,
     query: string
-  ): Promise<any[]> {
+  ): Promise<
+    Array<{
+      pageContent?: string
+      metadata?: Record<string, unknown>
+      score?: number
+      content?: string
+    }>
+  > {
     const spiritualKeywords = [
       'бог',
       'душа',

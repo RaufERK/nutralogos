@@ -15,8 +15,7 @@ if (fs.existsSync(envLocalPath)) {
 }
 
 async function resetQdrant() {
-  const { deleteCollection, createCollection, ensurePayloadIndexes } =
-    await import('@/lib/qdrant')
+  const { deleteCollection, createCollection } = await import('@/lib/qdrant')
   console.log('🧨 Resetting Qdrant collection...')
   try {
     await deleteCollection()
@@ -24,7 +23,7 @@ async function resetQdrant() {
     console.log('ℹ️ Qdrant delete skipped or failed (may not exist).')
   }
   await createCollection()
-  await ensurePayloadIndexes()
+  // ensurePayloadIndexes is not available in current qdrant helper; skipping
   console.log('✅ Qdrant collection is ready')
 }
 

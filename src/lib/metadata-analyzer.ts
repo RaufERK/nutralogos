@@ -62,16 +62,16 @@ const spiritualPrompt = (
 ${text}
 `
 
-function safeParseJSON(text: string): any {
+function safeParseJSON(text: string): Record<string, unknown> {
   try {
     // Try direct parse
-    return JSON.parse(text)
+    return JSON.parse(text) as Record<string, unknown>
   } catch {
     // Try to extract JSON block
     const match = text.match(/\{[\s\S]*\}/)
     if (match) {
       try {
-        return JSON.parse(match[0])
+        return JSON.parse(match[0]) as Record<string, unknown>
       } catch {}
     }
     return {}
@@ -120,7 +120,11 @@ export async function analyzeTextWithLLM(
     typeof response.content === 'string'
       ? response.content
       : Array.isArray(response.content)
-      ? response.content.map((c: any) => c.text || '').join('\n')
+      ? response.content
+          .map((c: { text?: string } | string) =>
+            typeof c === 'string' ? c : c.text || ''
+          )
+          .join('\n')
       : ''
 
   const parsed = safeParseJSON(content)

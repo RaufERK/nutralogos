@@ -21,4 +21,4 @@ export const QDRANT_API_KEY: string = qdrantApiKey
 export const QDRANT_COLLECTION_NAME: string = qdrantCollectionName
 
 export const QDRANT_VECTOR_SIZE = 1536
-export const QDRANT_DISTANCE: 'Cosine' = 'Cosine'
+export const QDRANT_DISTANCE = 'Cosine' as const

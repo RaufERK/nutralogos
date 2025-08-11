@@ -62,7 +62,7 @@ async function testChunkingComparison() {
         // Новый метод
         console.log('\n🔹 NEW OPTIMIZED METHOD:')
         const startNew = Date.now()
-        const newChunks = OptimizedTextSplitter.splitTextOptimized(text, {
+        const newChunks = await OptimizedTextSplitter.splitTextOptimized(text, {
           chunkSize: 1000, // токенов
           chunkOverlap: 200, // токенов
           preserveStructure: true,

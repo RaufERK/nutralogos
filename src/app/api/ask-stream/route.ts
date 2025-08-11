@@ -11,7 +11,27 @@ import {
 import { RAGSettings } from '@/lib/settings-service'
 
 // Функция для отправки сообщений через WebSocket HTTP bridge
-async function sendToClient(clientId: string, message: any): Promise<boolean> {
+type OutboundMessage =
+  | { type: 'start'; messageId: string; question: string }
+  | {
+      type: 'sources'
+      messageId: string
+      sources: Array<{
+        id: string
+        content: string
+        metadata?: Record<string, unknown>
+        score?: number
+        relevanceScore?: number
+      }>
+    }
+  | { type: 'chunk'; messageId: string; content: string }
+  | { type: 'complete'; messageId: string }
+  | { type: 'error'; messageId: string; error: string }
+
+async function sendToClient(
+  clientId: string,
+  message: OutboundMessage
+): Promise<boolean> {
   try {
     const response = await fetch('http://localhost:3002/send-message', {
       method: 'POST',
@@ -125,7 +145,7 @@ ${contextString}
 
       // Преобразуем документы в наш формат
       sources = ragResult.sourceDocuments.map((doc, index) => ({
-        id: doc.metadata?.id || `doc_${index}`,
+        id: String(doc.metadata?.id || `doc_${index}`),
         content: doc.content || doc.pageContent || '',
         metadata: {
           ...doc.metadata,
@@ -141,7 +161,13 @@ ${contextString}
         await sendToClient(clientId, {
           type: 'sources',
           messageId,
-          sources,
+          sources: sources.map((s) => ({
+            id: String(s.id),
+            content: s.content,
+            metadata: s.metadata as Record<string, unknown>,
+            score: s.metadata?.score,
+            relevanceScore: s.metadata?.relevanceScore,
+          })),
         })
       }
     } catch (chainError) {
@@ -166,7 +192,7 @@ ${contextString}
         ? formatEnhancedContextForPrompt(
             sources.map((s) => ({
               pageContent: s.content,
-              metadata: s.metadata,
+              metadata: s.metadata as unknown as Record<string, unknown>,
             }))
           )
         : 'Контекст не найден.'
@@ -190,7 +216,15 @@ ${contextString}
 
       // Обрабатываем каждый чанк
       for await (const chunk of stream) {
-        const content = chunk.content
+        const raw = (chunk as any).content
+        const content =
+          typeof raw === 'string'
+            ? raw
+            : Array.isArray(raw)
+            ? raw
+                .map((c: any) => (typeof c === 'string' ? c : c?.text || ''))
+                .join('')
+            : String(raw ?? '')
         if (content) {
           // Отправляем чанк клиенту
           await sendToClient(clientId, {

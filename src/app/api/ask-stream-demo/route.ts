@@ -1,7 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Функция для отправки сообщений через WebSocket HTTP мост
-async function sendToClient(clientId: string, message: any): Promise<boolean> {
+type DemoOutboundMessage =
+  | { type: 'start'; messageId: string; question: string }
+  | {
+      type: 'sources'
+      messageId: string
+      sources: Array<{
+        id: string
+        content: string
+        metadata?: Record<string, unknown>
+        score?: number
+      }>
+    }
+  | { type: 'chunk'; messageId: string; content: string }
+  | { type: 'complete'; messageId: string }
+  | { type: 'error'; messageId: string; error: string }
+
+async function sendToClient(
+  clientId: string,
+  message: DemoOutboundMessage
+): Promise<boolean> {
   try {
     const httpPort = process.env.WEBSOCKET_HTTP_PORT || '3002'
     const response = await fetch(`http://localhost:${httpPort}/send-message`, {
@@ -69,7 +88,7 @@ export async function POST(request: NextRequest) {
       messageId,
     }: {
       question: string
-      context?: any[]
+      context?: Array<{ role: 'user' | 'assistant'; content: string }>
       clientId: string
       messageId: string
     } = body

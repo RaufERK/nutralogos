@@ -271,7 +271,7 @@ export class SettingsService {
   /**
    * Convert string value to appropriate type
    */
-  private static convertValue(value: string, type: string): any {
+  private static convertValue(value: string, type: string): unknown {
     switch (type) {
       case 'number':
         return parseFloat(value)

@@ -11,13 +11,10 @@ export const FILE_CONFIG = {
   MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || '10485760'), // 10MB - reduced for stability
   MAX_FILES_PER_DAY: 50, // Reduced for stability
   ALLOWED_MIME_TYPES: [
-    'application/pdf', // ✅ PDF - через pdf-parse
+    'application/pdf', // ✅ PDF - через pdf-text-extract
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // ✅ DOCX - через mammoth
     'text/plain', // ✅ TXT - нативный Node.js
-    'application/epub+zip', // ✅ EPUB - через epub2
-    'application/x-fictionbook+xml', // ✅ FB2 - через xml2js
-    'text/xml', // ✅ XML для FB2 - через xml2js
-    'application/xml', // ✅ XML для FB2 - через xml2js
+    // legacy formats (epub/fb2/xml) removed
     'application/msword', // ✅ DOC - через word-extractor
     'application/vnd.ms-word', // ✅ DOC альтернативный MIME - через word-extractor
   ],

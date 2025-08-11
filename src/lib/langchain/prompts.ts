@@ -116,7 +116,16 @@ export function createGenericPrompt(): PromptTemplate {
  * @param documents - Array of documents with content and metadata
  * @returns Formatted context string
  */
-export function formatContextForPrompt(documents: any[]): string {
+type PromptDoc = {
+  content?: string
+  pageContent?: string
+  metadata?: Record<string, unknown>
+  source?: string
+  category?: string
+  topic?: string
+}
+
+export function formatContextForPrompt(documents: PromptDoc[]): string {
   if (!documents || documents.length === 0) {
     return 'Контекст не найден.'
   }
@@ -148,7 +157,7 @@ export function formatContextForPrompt(documents: any[]): string {
  * @param documents - Documents with scores
  * @returns Enhanced formatted context
  */
-export function formatEnhancedContextForPrompt(documents: any[]): string {
+export function formatEnhancedContextForPrompt(documents: PromptDoc[]): string {
   if (!documents || documents.length === 0) {
     return 'Релевантная информация не найдена.'
   }
@@ -158,7 +167,7 @@ export function formatEnhancedContextForPrompt(documents: any[]): string {
   documents.forEach((doc, index) => {
     const content = doc.content || doc.pageContent || ''
     const metadata = doc.metadata || {}
-    const score = doc.score
+    const score = (doc as unknown as { score?: number }).score
       ? ` (релевантность: ${Math.round(doc.score * 100)}%)`
       : ''
 

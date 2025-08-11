@@ -62,11 +62,32 @@ export async function POST() {
 
     console.log(`📋 [SYNC] Found ${pendingFiles.length} files to process`)
 
-    const results = {
+    type ProcessResult = {
+      fileId: number
+      filename: string
+      success: boolean
+      skipped?: boolean
+      reason?: string
+      linkedTo?: string
+      txtHash?: string
+      textLength?: number
+      chunksCreated?: number
+      processingTime?: number
+      txtPath?: string
+      savedToDatabase?: boolean
+      error?: string
+    }
+
+    const results: {
+      processed: number
+      skipped: number
+      errors: number
+      details: ProcessResult[]
+    } = {
       processed: 0,
       skipped: 0,
       errors: 0,
-      details: [] as any[],
+      details: [],
     }
 
     // 2. Обработать каждый файл
@@ -86,7 +107,7 @@ export async function POST() {
         } else {
           results.errors++
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(
           `❌ [SYNC] Error processing ${file.original_filename}:`,
           error
@@ -96,7 +117,7 @@ export async function POST() {
           fileId: file.id,
           filename: file.original_filename,
           success: false,
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
         })
       }
     }
@@ -110,12 +131,12 @@ export async function POST() {
       message: 'Synchronization completed',
       ...results,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [SYNC] General error:', error)
     return NextResponse.json(
       {
         error: 'Synchronization failed',
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     )
@@ -125,7 +146,17 @@ export async function POST() {
 /**
  * Обрабатывает один файл: парсинг → дедупликация → эмбеддинг
  */
-async function processSingleFile(file: any) {
+type PendingFile = {
+  id: number
+  original_filename: string
+  storage_path: string
+  file_hash: string
+  mime_type: string
+  uploaded_at: string
+  file_size?: number
+}
+
+async function processSingleFile(file: PendingFile) {
   const fileId = file.id
   const originalFilename = file.original_filename
   const storagePath = file.storage_path
@@ -302,7 +333,7 @@ async function processSingleFile(file: any) {
       txtPath,
       savedToDatabase: true,
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`❌ [SYNC] Error processing ${originalFilename}:`, error)
 
     // Обновляем статус на 'failed' с сообщением об ошибке
@@ -316,7 +347,11 @@ async function processSingleFile(file: any) {
             processed_at = ?
         WHERE id = ?
       `
-      ).run(error.message, new Date().toISOString(), fileId)
+      ).run(
+        error instanceof Error ? error.message : String(error),
+        new Date().toISOString(),
+        fileId
+      )
     } catch (dbError) {
       console.error(
         `❌ [SYNC] Could not update error status for ${originalFilename}:`,
@@ -328,7 +363,7 @@ async function processSingleFile(file: any) {
       fileId,
       filename: originalFilename,
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     }
   }
 }
@@ -350,11 +385,14 @@ export async function GET() {
       GROUP BY processing_status
     `
       )
-      .all() as any[]
+      .all() as Array<{
+      processing_status: keyof typeof statusMap
+      count: number
+    }>
 
     const totalFiles = db
       .prepare(`SELECT COUNT(*) as count FROM processed_files`)
-      .get() as any
+      .get() as { count: number }
 
     const statusMap = {
       original_uploaded: 0,

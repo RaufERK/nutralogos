@@ -1,6 +1,8 @@
 export interface DocumentMetadata {
   category?: string
   topic?: string
+  score?: number
+  relevanceScore?: number
 }
 
 export interface Document {

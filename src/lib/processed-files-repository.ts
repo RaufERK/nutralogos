@@ -56,7 +56,7 @@ export class ProcessedFilesRepository {
     const offset = (page - 1) * limit
 
     let whereClause = ''
-    let params: any[] = []
+    const params: Array<string | number> = []
 
     if (statusFilter && statusFilter !== 'all') {
       whereClause = 'WHERE processing_status = ?'

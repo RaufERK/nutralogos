@@ -25,11 +25,18 @@ export async function POST(req: NextRequest) {
         .trim()
 
     const extractWithPath = (pdfPath: string) =>
-      new Promise<string>((resolve, reject) => {
+      new Promise<string>(async (resolve, reject) => {
         try {
-          const extract = require('pdf-text-extract')
+          const mod = await import('pdf-text-extract')
+          const modDefault = (mod as unknown as { default?: unknown }).default
+          const extractCandidate = (modDefault ?? (mod as unknown)) as unknown
+          const extract = extractCandidate as (
+            path: string,
+            opts: { splitPages: boolean },
+            cb: (err: unknown, text: string | string[]) => void
+          ) => void
           const options = { splitPages: false }
-          extract(pdfPath, options, (err: any, text: string | string[]) => {
+          extract(pdfPath, options, (err: unknown, text: string | string[]) => {
             if (err) return reject(err)
             const joined = Array.isArray(text) ? text.join('\n\n') : text
             resolve(normalize(joined || ''))
@@ -61,9 +68,12 @@ export async function POST(req: NextRequest) {
       textLength: text.length,
       preview: text.substring(0, 1000),
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, error: error.message || 'Extraction failed' },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Extraction failed',
+      },
       { status: 500 }
     )
   }

@@ -91,7 +91,9 @@ export async function searchSimilarDocuments(
  * @param documents - Array of LangChain Document objects
  * @returns Promise<string[]> - Array of document IDs
  */
-export async function addDocuments(documents: any[]) {
+export async function addDocuments(
+  documents: Array<{ pageContent: string; metadata: Record<string, unknown> }>
+) {
   try {
     console.log(`🔗 [QDRANT] Starting to add ${documents.length} documents...`)
     const vectorStore = getVectorStore()

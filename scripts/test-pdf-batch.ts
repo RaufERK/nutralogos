@@ -14,7 +14,7 @@ async function parseWithPdfParse(buffer: Buffer) {
 
 async function parseWithPdfJs(buffer: Buffer) {
   try {
-    const pdfjsLib: any = await import('pdfjs-dist/build/pdf.js')
+    throw new Error('Legacy pdfjs-dist test disabled')
     const loadingTask = pdfjsLib.getDocument({
       data: new Uint8Array(buffer),
       useWorkerFetch: false,

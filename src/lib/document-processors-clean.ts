@@ -41,11 +41,18 @@ export class PDFProcessor implements DocumentProcessor {
         .trim()
 
     const extractWithPath = (pdfPath: string) =>
-      new Promise<string>((resolve, reject) => {
+      new Promise<string>(async (resolve, reject) => {
         try {
-          const extract = require('pdf-text-extract')
+          const mod = await import('pdf-text-extract')
+          const modDefault = (mod as unknown as { default?: unknown }).default
+          const extractCandidate = (modDefault ?? (mod as unknown)) as unknown
+          const extract = extractCandidate as (
+            path: string,
+            opts: { splitPages: boolean },
+            cb: (err: unknown, text: string | string[]) => void
+          ) => void
           const options = { splitPages: false }
-          extract(pdfPath, options, (err: any, text: string | string[]) => {
+          extract(pdfPath, options, (err: unknown, text: string | string[]) => {
             if (err) return reject(err)
             const joined = Array.isArray(text) ? text.join('\n\n') : text
             resolve(normalize(joined || ''))
@@ -75,8 +82,9 @@ export class PDFProcessor implements DocumentProcessor {
       await fs.writeFile(tempFile, buffer)
       const text = await extractWithPath(tempFile)
       return text
-    } catch (error: any) {
-      throw new Error(`PDF processing failed: ${error.message}`)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      throw new Error(`PDF processing failed: ${msg}`)
     } finally {
       if (tempFile) {
         try {
@@ -104,7 +112,13 @@ export class DOCXProcessor implements DocumentProcessor {
     try {
       // Динамический импорт
       const mammoth = await import('mammoth')
-      const result = await mammoth.extractRawText({ buffer })
+      const result = await (
+        mammoth as unknown as {
+          extractRawText: (opts: {
+            buffer: Buffer
+          }) => Promise<{ value: string }>
+        }
+      ).extractRawText({ buffer })
       return result.value
     } catch (error) {
       throw new Error(`DOCX processing failed: ${error.message}`)
@@ -124,9 +138,17 @@ export class DOCProcessor implements DocumentProcessor {
   async extractText(filePath: string, buffer: Buffer): Promise<string> {
     try {
       // Динамический импорт
-      const WordExtractor = require('word-extractor')
-      const extractor = new WordExtractor()
-      const extracted = await extractor.extract(buffer)
+      const WordExtractor = await import('word-extractor')
+      const ExtractorCtor = ((WordExtractor as unknown as { default?: unknown })
+        .default ?? (WordExtractor as unknown)) as new () => {
+        extract: (buf: unknown) => Promise<{
+          getBody(): string
+          getFootnotes(): string
+          getEndnotes(): string
+        }>
+      }
+      const extractor = new ExtractorCtor()
+      const extracted = await extractor.extract(buffer as unknown as string)
       const body = extracted.getBody()
 
       // Также извлекаем footnotes и endnotes если есть

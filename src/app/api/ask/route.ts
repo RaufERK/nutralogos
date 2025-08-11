@@ -56,7 +56,12 @@ ${contextString}
     // 2. Process query through LangChain RAG pipeline
     let ragResult: {
       text: string
-      sourceDocuments: any[]
+      sourceDocuments: Array<{
+        pageContent?: string
+        content?: string
+        metadata?: Record<string, unknown>
+        score?: number
+      }>
       relevanceScores: number[]
     }
 

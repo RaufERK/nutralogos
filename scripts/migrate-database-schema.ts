@@ -51,10 +51,10 @@ async function migrateDatabaseSchema() {
           const alterSQL = `ALTER TABLE processed_files ADD COLUMN ${column.name} ${column.type}`
           console.log(`➕ Adding column: ${column.name}`)
           db.exec(alterSQL)
-        } catch (error) {
+        } catch (error: unknown) {
           console.warn(
             `⚠️  Warning: Could not add column ${column.name}:`,
-            error.message
+            error instanceof Error ? error.message : String(error)
           )
         }
       } else {
@@ -99,8 +99,11 @@ async function migrateDatabaseSchema() {
       try {
         db.exec(indexSQL)
         console.log('📊 Created index successfully')
-      } catch (error) {
-        console.warn('⚠️  Warning: Could not create index:', error.message)
+      } catch (error: unknown) {
+        console.warn(
+          '⚠️  Warning: Could not create index:',
+          error instanceof Error ? error.message : String(error)
+        )
       }
     }
 

@@ -42,7 +42,7 @@ export function SyncButton({ pendingCount }: SyncButtonProps) {
       setResult({
         success: false,
         error: 'Network error',
-        details: error.message,
+        details: error instanceof Error ? error.message : 'Unknown error',
       })
     } finally {
       setIsLoading(false)

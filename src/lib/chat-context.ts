@@ -7,7 +7,7 @@ export interface ChatMessage {
   sources?: Array<{
     id: string
     content: string
-    metadata?: any
+    metadata?: Record<string, unknown>
   }>
 }
 
@@ -247,7 +247,10 @@ export class ChatContextService {
   /**
    * Найти настройку по имени параметра
    */
-  private static findSetting(settings: any[], parameterName: string) {
+  private static findSetting(
+    settings: Array<{ parameter_name: string; parameter_value?: string }>,
+    parameterName: string
+  ) {
     return settings.find((s) => s.parameter_name === parameterName)
   }
 
