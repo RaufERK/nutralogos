@@ -45,83 +45,15 @@ export function useWebSocket(): UseWebSocketReturn {
   const reconnectAttempts = useRef(0)
   const maxReconnectAttempts = 5
 
-  const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      return
-    }
-
-    try {
-      const wsUrl = `ws://localhost:${
-        process.env.NEXT_PUBLIC_WEBSOCKET_PORT || '3001'
-      }`
-      console.log('🔗 Connecting to WebSocket:', wsUrl)
-
-      wsRef.current = new WebSocket(wsUrl)
-
-      wsRef.current.onopen = () => {
-        console.log('✅ WebSocket connected')
-        setIsConnected(true)
-        setConnectionError(null)
-        reconnectAttempts.current = 0
-      }
-
-      wsRef.current.onmessage = (event) => {
-        try {
-          const message: WSMessage = JSON.parse(event.data)
-          handleWebSocketMessage(message)
-        } catch (error) {
-          console.error('❌ Failed to parse WebSocket message:', error)
-        }
-      }
-
-      wsRef.current.onclose = (event) => {
-        console.log('🔌 WebSocket disconnected:', event.code, event.reason)
-        setIsConnected(false)
-
-        // Автоматическое переподключение
-        if (reconnectAttempts.current < maxReconnectAttempts) {
-          const delay = Math.min(
-            1000 * Math.pow(2, reconnectAttempts.current),
-            30000
-          )
-          console.log(
-            `🔄 Reconnecting in ${delay}ms (attempt ${
-              reconnectAttempts.current + 1
-            }/${maxReconnectAttempts})`
-          )
-
-          reconnectTimeoutRef.current = setTimeout(() => {
-            reconnectAttempts.current++
-            connect()
-          }, delay)
-        } else {
-          setConnectionError(
-            'Не удалось подключиться к серверу после нескольких попыток'
-          )
-        }
-      }
-
-      wsRef.current.onerror = (error) => {
-        console.error('❌ WebSocket error:', error)
-        setConnectionError('Ошибка подключения к серверу')
-      }
-    } catch (error) {
-      console.error('❌ Failed to create WebSocket connection:', error)
-      setConnectionError('Не удалось создать подключение')
-    }
-  }, [handleWebSocketMessage])
-
   const handleWebSocketMessage = useCallback((message: WSMessage) => {
     console.log('📨 Received WebSocket message:', message)
 
     switch (message.type) {
       case 'start':
         if (message.messageId === 'connection' && message.content) {
-          // Это сообщение с clientId при подключении
           setClientId(message.content)
           console.log('🆔 Client ID received:', message.content)
         } else {
-          // Начало streaming сообщения
           setStreamingMessages((prev) => {
             const newMap = new Map(prev)
             newMap.set(message.messageId, {
@@ -200,6 +132,74 @@ export function useWebSocket(): UseWebSocketReturn {
         break
     }
   }, [])
+
+  const connect = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      return
+    }
+
+    try {
+      const wsUrl = `ws://localhost:${
+        process.env.NEXT_PUBLIC_WEBSOCKET_PORT || '3001'
+      }`
+      console.log('🔗 Connecting to WebSocket:', wsUrl)
+
+      wsRef.current = new WebSocket(wsUrl)
+
+      wsRef.current.onopen = () => {
+        console.log('✅ WebSocket connected')
+        setIsConnected(true)
+        setConnectionError(null)
+        reconnectAttempts.current = 0
+      }
+
+      wsRef.current.onmessage = (event) => {
+        try {
+          const message: WSMessage = JSON.parse(event.data)
+          handleWebSocketMessage(message)
+        } catch (error) {
+          console.error('❌ Failed to parse WebSocket message:', error)
+        }
+      }
+
+      wsRef.current.onclose = (event) => {
+        console.log('🔌 WebSocket disconnected:', event.code, event.reason)
+        setIsConnected(false)
+
+        // Автоматическое переподключение
+        if (reconnectAttempts.current < maxReconnectAttempts) {
+          const delay = Math.min(
+            1000 * Math.pow(2, reconnectAttempts.current),
+            30000
+          )
+          console.log(
+            `🔄 Reconnecting in ${delay}ms (attempt ${
+              reconnectAttempts.current + 1
+            }/${maxReconnectAttempts})`
+          )
+
+          reconnectTimeoutRef.current = setTimeout(() => {
+            reconnectAttempts.current++
+            connect()
+          }, delay)
+        } else {
+          setConnectionError(
+            'Не удалось подключиться к серверу после нескольких попыток'
+          )
+        }
+      }
+
+      wsRef.current.onerror = (error) => {
+        console.error('❌ WebSocket error:', error)
+        setConnectionError('Ошибка подключения к серверу')
+      }
+    } catch (error) {
+      console.error('❌ Failed to create WebSocket connection:', error)
+      setConnectionError('Не удалось создать подключение')
+    }
+  }, [handleWebSocketMessage])
+
+  
 
   const sendStreamingRequest = useCallback(
     async (question: string, context?: unknown[]): Promise<string> => {
