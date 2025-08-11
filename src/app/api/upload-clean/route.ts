@@ -64,8 +64,11 @@ export async function POST(request: NextRequest) {
       preview: text.substring(0, 200) + (text.length > 200 ? '...' : ''),
       testMode: !!testMode,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [CLEAN UPLOAD] Error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal error' },
+      { status: 500 }
+    )
   }
 }
