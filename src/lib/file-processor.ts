@@ -37,7 +37,7 @@ export class FileProcessor {
       try {
         await fs.access(filePath)
         console.log(`[FileProcessor] Файл существует и доступен для чтения`)
-      } catch (accessError) {
+      } catch {
         throw new Error(`Файл не найден или недоступен: ${filePath}`)
       }
 

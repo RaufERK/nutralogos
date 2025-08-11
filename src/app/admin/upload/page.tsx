@@ -37,7 +37,7 @@ export default function UploadPage() {
     loadMaxFileSize()
   }, [])
 
-  const validateFile = (file: File): string | null => {
+  const validateFile = useCallback((file: File): string | null => {
     const maxSize = maxFileSizeMB * 1024 * 1024 // Динамический размер из настроек
     const allowedTypes = [
       'application/pdf', // ✅ PDF - работает стабильно
@@ -55,7 +55,7 @@ export default function UploadPage() {
     }
 
     return null
-  }
+  }, [maxFileSizeMB])
 
   const handleFiles = useCallback((fileList: FileList) => {
     const newFiles: UploadFile[] = Array.from(fileList).map((file) => {
@@ -70,7 +70,7 @@ export default function UploadPage() {
     })
 
     setFiles((prev) => [...prev, ...newFiles])
-  }, [])
+  }, [validateFile])
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -130,7 +130,7 @@ export default function UploadPage() {
         })
 
         if (response.ok) {
-          const result = await response.json()
+          await response.json()
           setFiles((prev) =>
             prev.map((f) =>
               f.id === fileData.id

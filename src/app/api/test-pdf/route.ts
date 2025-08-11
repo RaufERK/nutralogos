@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile, writeFile, mkdir, unlink, rmdir, stat } from 'fs/promises'
-import path, { join, dirname } from 'path'
+import { readFile, writeFile, mkdir, stat } from 'fs/promises'
+import path, { join } from 'path'
 import os from 'os'
 
 export async function POST(req: NextRequest) {
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       await stat(filePath)
       text = await extractWithPath(filePath)
     } catch {
-      const tmpDir = await mkdir(join(os.tmpdir(), 'pdfx-test'), {
+      await mkdir(join(os.tmpdir(), 'pdfx-test'), {
         recursive: true,
       })
       tempFile = join(os.tmpdir(), 'pdfx-test', 'input.pdf')

@@ -1,5 +1,4 @@
 import { WebSocket, WebSocketServer } from 'ws'
-import { IncomingMessage } from 'http'
 import { Document } from '@/lib/types'
 
 export interface WSMessage {

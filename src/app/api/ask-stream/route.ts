@@ -215,14 +215,20 @@ ${contextString}
       ])
 
       // Обрабатываем каждый чанк
-      for await (const chunk of stream) {
-        const raw = (chunk as any).content
+      for await (const chunk of stream as AsyncIterable<{ content?: unknown }>) {
+        const raw = (chunk as { content?: unknown }).content
         const content =
           typeof raw === 'string'
             ? raw
             : Array.isArray(raw)
-            ? raw
-                .map((c: any) => (typeof c === 'string' ? c : c?.text || ''))
+            ? (raw as Array<unknown>)
+                .map((c) =>
+                  typeof c === 'string'
+                    ? c
+                    : typeof c === 'object' && c && 'text' in c
+                    ? String((c as { text?: unknown }).text || '')
+                    : ''
+                )
                 .join('')
             : String(raw ?? '')
         if (content) {

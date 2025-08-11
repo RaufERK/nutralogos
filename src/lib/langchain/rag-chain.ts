@@ -1,10 +1,6 @@
 import { llm, createLLM } from './llm'
 import { createRetriever } from './vectorstore'
-import {
-  createSpiritualPrompt,
-  createDynamicPrompt,
-  formatEnhancedContextForPrompt,
-} from './prompts'
+import { createDynamicPrompt, formatEnhancedContextForPrompt } from './prompts'
 import { RAGSettings } from '@/lib/settings-service'
 
 /**
@@ -158,7 +154,9 @@ export class EnhancedSpiritualRAGChain {
       }
     } catch (error) {
       console.error('❌ Enhanced RAG Chain Error:', error)
-      throw new Error(`RAG processing failed: ${error.message}`)
+      throw new Error(
+        `RAG processing failed: ${error instanceof Error ? error.message : String(error)}`
+      )
     }
   }
 

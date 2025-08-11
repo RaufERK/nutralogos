@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createEnhancedRAGChain } from '@/lib/langchain/rag-chain'
-import { AskRequest, AskResponse, Document } from '@/lib/types'
+import { AskResponse, Document } from '@/lib/types'
 import { SettingsService } from '@/lib/settings-service'
 import { ChatMessage } from '@/lib/chat-context'
 

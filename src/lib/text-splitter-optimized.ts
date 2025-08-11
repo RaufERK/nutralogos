@@ -30,7 +30,7 @@ export class OptimizedTextSplitter {
     const punctuation = (
       text.match(/[.,!?;:()[\]{}"'`~@#$%^&*+=<>\/\\|_-]/g) || []
     ).length
-    const spaces = (text.match(/\s/g) || []).length
+    // const spaces = (text.match(/\s/g) || []).length
 
     // Эмпирические коэффициенты для разных типов контента
     let estimatedTokens = 0
@@ -92,7 +92,7 @@ export class OptimizedTextSplitter {
         '\n\n[... текст обрезан для стабильной работы системы ...]'
     }
 
-    const chunks: TextChunk[] = []
+    // const chunks: TextChunk[] = []
 
     if (preserveStructure) {
       return this.splitWithStructurePreservation(text, chunkSize, chunkOverlap)
@@ -209,7 +209,7 @@ export class OptimizedTextSplitter {
   private static splitLargeParagraph(
     paragraph: string,
     chunkSize: number,
-    chunkOverlap: number
+    _chunkOverlap: number
   ): TextChunk[] {
     const chunks: TextChunk[] = []
     const sentences = paragraph
@@ -265,7 +265,7 @@ export class OptimizedTextSplitter {
   private static splitByTokens(
     text: string,
     chunkSize: number,
-    chunkOverlap: number
+    _chunkOverlap: number
   ): TextChunk[] {
     const chunks: TextChunk[] = []
     const words = text.split(/\s+/)

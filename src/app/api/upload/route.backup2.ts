@@ -8,7 +8,6 @@ import {
   MultiFormatFileProcessor,
 } from '@/lib/file-processor-v2'
 import { FileRepository } from '@/lib/file-repository'
-import { getEmbeddingVectors } from '@/lib/langchain/embeddings'
 import { addDocuments } from '@/lib/langchain/vectorstore'
 import { Document } from '@langchain/core/documents'
 

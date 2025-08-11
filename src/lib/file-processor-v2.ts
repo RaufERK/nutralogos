@@ -70,7 +70,7 @@ export class MultiFormatFileProcessor {
       try {
         await fs.access(filePath)
         console.log(`✅ File accessible: ${fileName}`)
-      } catch (accessError) {
+      } catch {
         throw new Error(`File not found or inaccessible: ${filePath}`)
       }
 

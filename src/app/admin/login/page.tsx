@@ -37,7 +37,7 @@ export default function LoginPage() {
       } else if (result?.ok) {
         router.push('/admin')
       }
-    } catch (error) {
+    } catch {
       setError('Ошибка соединения')
     } finally {
       setIsLoading(false)

@@ -23,7 +23,6 @@ export default function Home() {
   const [collapsedSources, setCollapsedSources] = useState<Set<string>>(
     new Set() // По умолчанию все источники свёрнуты
   )
-  const [isStreamingMode] = useState(true) // Всегда включен стриминг
   const [welcomeMessage, setWelcomeMessage] =
     useState(`Этот чат-помощник создан, чтобы помогать вам находить ответы на вопросы о здоровье, питании и нутрициологической поддержке.
 
@@ -39,13 +38,8 @@ export default function Home() {
   } = useChatContext()
 
   // WebSocket hook для стриминга
-  const {
-    isConnected: wsConnected,
-    sendStreamingRequest,
-    streamingMessages,
-    clearStreamingMessage,
-    connectionError,
-  } = useWebSocket()
+  const { sendStreamingRequest, streamingMessages, clearStreamingMessage, connectionError } =
+    useWebSocket()
 
   // Ref для автоматического скролла к последнему сообщению
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -117,7 +111,7 @@ export default function Home() {
       // 🚀 STREAMING РЕЖИМ (всегда включен)
       console.log('🔥 Используем streaming режим')
 
-      const streamingMessageId = await sendStreamingRequest(
+      await sendStreamingRequest(
         currentQuestion,
         context.length > 0 ? context : undefined
       )

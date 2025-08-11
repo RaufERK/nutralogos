@@ -109,7 +109,7 @@ export function useWebSocket(): UseWebSocketReturn {
       console.error('❌ Failed to create WebSocket connection:', error)
       setConnectionError('Не удалось создать подключение')
     }
-  }, [])
+  }, [handleWebSocketMessage])
 
   const handleWebSocketMessage = useCallback((message: WSMessage) => {
     console.log('📨 Received WebSocket message:', message)
