@@ -56,8 +56,10 @@ export async function getEmbeddingVector(text: string): Promise<number[]> {
 
     // Limit cache size to prevent memory leaks
     if (embeddingCache.size > 100) {
-      const firstKey = embeddingCache.keys().next().value
-      embeddingCache.delete(firstKey)
+      const firstKey = embeddingCache.keys().next().value as string | undefined
+      if (typeof firstKey === 'string') {
+        embeddingCache.delete(firstKey)
+      }
     }
 
     return result
