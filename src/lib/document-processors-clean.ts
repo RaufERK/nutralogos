@@ -120,8 +120,9 @@ export class DOCXProcessor implements DocumentProcessor {
         }
       ).extractRawText({ buffer })
       return result.value
-    } catch (error) {
-      throw new Error(`DOCX processing failed: ${error.message}`)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      throw new Error(`DOCX processing failed: ${msg}`)
     }
   }
 
@@ -164,8 +165,9 @@ export class DOCProcessor implements DocumentProcessor {
       }
 
       return fullText
-    } catch (error) {
-      throw new Error(`DOC processing failed: ${error.message}`)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      throw new Error(`DOC processing failed: ${msg}`)
     }
   }
 
