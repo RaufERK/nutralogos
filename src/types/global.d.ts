@@ -14,3 +14,13 @@ declare module 'pdfjs-dist/build/pdf.js' {
 }
 
 export {}
+
+declare module 'pdf-text-extract' {
+  type ExtractCallback = (err: unknown, text: string | string[]) => void
+  function extract(
+    path: string,
+    options: { splitPages: boolean },
+    cb: ExtractCallback
+  ): void
+  export = extract
+}
