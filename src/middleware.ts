@@ -11,7 +11,8 @@ export async function middleware(request: NextRequest) {
     // Если пользователь уже на странице логина - пропускаем
     if (pathname === '/admin/login') {
       // Если авторизован - редирект в админку
-      if (session?.user?.role === 'admin') {
+      const role = (session?.user as { role?: string } | undefined)?.role
+      if (role === 'admin') {
         return NextResponse.redirect(new URL('/admin', request.url))
       }
       // Если не авторизован - показываем страницу логина
@@ -19,7 +20,8 @@ export async function middleware(request: NextRequest) {
     }
 
     // Для всех остальных админских страниц - проверяем авторизацию
-    if (!session?.user || session.user.role !== 'admin') {
+    const userRole = (session?.user as { role?: string } | undefined)?.role
+    if (!session?.user || userRole !== 'admin') {
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
   }
