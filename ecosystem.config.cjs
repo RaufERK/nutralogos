@@ -8,7 +8,7 @@ module.exports = {
       exec_mode: 'fork',
       watch: false,
       env: { NODE_ENV: 'production' },
-      env_production: { NODE_ENV: 'production' }
+      env_production: { NODE_ENV: 'production' },
     },
     {
       name: 'nutralogos-ws',
@@ -19,34 +19,33 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         WEBSOCKET_PORT: '3001',
-        WEBSOCKET_HTTP_PORT: '3002'
+        WEBSOCKET_HTTP_PORT: '3002',
       },
       env_production: {
         NODE_ENV: 'production',
         WEBSOCKET_PORT: '3001',
-        WEBSOCKET_HTTP_PORT: '3002'
-      }
-    }
+        WEBSOCKET_HTTP_PORT: '3002',
+      },
+    },
   ],
 
   deploy: {
     production: {
       user: 'appuser',
-      host: 'amster', // или IP
+      host: 'amster_app',
       ref: 'origin/main',
-      repo: 'git@github.com:YOUR_ORG/YOUR_REPO.git',
+      repo: 'git@github.com:RaufERK/nutralogos.git',
       path: '/home/appuser/apps/nutralogos',
       'pre-deploy-local': '',
       'post-deploy': [
         'source ~/.nvm/nvm.sh && nvm use --lts',
-        // важнo: линк .env ДО сборки
         'ln -sf /home/appuser/shared/nutralogos/.env.production ./.env.production || true',
-        'npm ci',
+        'npm ci --include=dev',
         'npm run build',
         'pm2 startOrReload ecosystem.config.cjs --env production',
-        'pm2 save'
+        'pm2 save',
       ].join(' && '),
-      env: { NODE_ENV: 'production' }
-    }
-  }
-};
+      env: { NODE_ENV: 'production' },
+    },
+  },
+}
