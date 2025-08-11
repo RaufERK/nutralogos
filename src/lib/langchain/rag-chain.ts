@@ -208,7 +208,11 @@ export class EnhancedSpiritualRAGChain {
 
     const rankedDocs = documents.map((doc) => {
       const content = (doc.pageContent || '').toLowerCase()
-      let relevanceScore = doc.metadata?.score || 0.5
+      const metaScore =
+        doc.metadata && typeof (doc.metadata as Record<string, unknown>).score === 'number'
+          ? ((doc.metadata as Record<string, unknown>).score as number)
+          : 0.5
+      let relevanceScore: number = metaScore
 
       // Boost for spiritual keywords in query
       const spiritualBoost = queryWords.some((word) =>
