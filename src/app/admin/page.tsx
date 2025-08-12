@@ -4,13 +4,10 @@ import { SyncButton } from './components/SyncButton'
 
 export default async function AdminPage() {
   // Получаем статистику из нового API
-  const response = await fetch(
-    `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/stats`,
-    {
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
+  const response = await fetch('/api/stats', {
+    cache: 'no-store',
+    headers: { 'Content-Type': 'application/json' },
+  })
 
   let stats = {
     totalFiles: 0,

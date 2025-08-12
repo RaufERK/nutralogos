@@ -2,6 +2,8 @@ import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -40,7 +42,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user && typeof user === 'object' && 'role' in user) {
-        ;(token as Record<string, unknown>).role = (user as Record<string, unknown>).role
+        ;(token as Record<string, unknown>).role = (
+          user as Record<string, unknown>
+        ).role
       }
       return token
     },
