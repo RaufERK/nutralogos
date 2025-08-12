@@ -140,13 +140,15 @@ export function useWebSocket(): UseWebSocketReturn {
 
     try {
       const isBrowser = typeof window !== 'undefined'
+      const explicitUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL
       const port = process.env.NEXT_PUBLIC_WEBSOCKET_PORT || '3001'
-      let wsUrl = `ws://localhost:${port}`
+      let wsUrl = explicitUrl || `ws://localhost:${port}`
 
-      if (isBrowser) {
+      if (!explicitUrl && isBrowser) {
         const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
         const host = window.location.hostname
-        wsUrl = `${protocol}://${host}:${port}`
+        // Сначала пробуем путь через nginx location /ws
+        wsUrl = `${protocol}://${host}/ws`
       }
       console.log('🔗 Connecting to WebSocket:', wsUrl)
 

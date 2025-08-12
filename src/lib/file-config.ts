@@ -3,7 +3,8 @@ import { join } from 'path'
 
 function getSettingSync(name: string, fallback: number): number {
   try {
-    const dbPath = join(process.cwd(), 'data', 'rag-chat.db')
+    const dataDir = process.env.DATA_DIR || join(process.cwd(), 'data')
+    const dbPath = join(dataDir, 'rag-chat.db')
     const db = new Database(dbPath)
     const row = db
       .prepare(
@@ -30,12 +31,16 @@ const MAX_FILE_SIZE_MB_DB = getSettingSync('max_file_size_mb', 50)
 
 export const FILE_CONFIG = {
   // Пути
-  UPLOADS_DIR: 'uploads',
-  TEMP_DIR: 'uploads/temp',
-  PROCESSING_DIR: 'uploads/temp/processing',
-  CLEANUP_DIR: 'uploads/temp/cleanup',
-  BACKUPS_DIR: 'uploads/backups',
-  LOGS_DIR: 'uploads/logs',
+  UPLOADS_DIR: process.env.UPLOADS_DIR || 'uploads',
+  TEMP_DIR: join(process.env.UPLOADS_DIR || 'uploads', 'temp'),
+  PROCESSING_DIR: join(
+    process.env.UPLOADS_DIR || 'uploads',
+    'temp',
+    'processing'
+  ),
+  CLEANUP_DIR: join(process.env.UPLOADS_DIR || 'uploads', 'temp', 'cleanup'),
+  BACKUPS_DIR: join(process.env.UPLOADS_DIR || 'uploads', 'backups'),
+  LOGS_DIR: join(process.env.UPLOADS_DIR || 'uploads', 'logs'),
 
   // Ограничения
   MAX_FILE_SIZE: Math.max(1, Math.floor(MAX_FILE_SIZE_MB_DB)) * 1024 * 1024,
