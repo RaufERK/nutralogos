@@ -4,9 +4,19 @@ import fs from 'fs'
 
 let db: Database.Database | null = null
 
+function resolveDataDir(): string {
+  const defaultDir = join(process.cwd(), 'data')
+  const dataDir = process.env.DATA_DIR || defaultDir
+  try {
+    fs.mkdirSync(dataDir, { recursive: true })
+  } catch {}
+  return dataDir
+}
+
 export async function getDatabase(): Promise<Database.Database> {
   if (!db) {
-    const dbPath = join(process.cwd(), 'data', 'rag-chat.db')
+    const dataDir = resolveDataDir()
+    const dbPath = join(dataDir, 'rag-chat.db')
     db = new Database(dbPath)
 
     // Enable foreign keys
