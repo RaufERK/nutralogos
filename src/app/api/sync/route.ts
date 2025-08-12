@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { documentProcessorFactory } from '@/lib/document-processors-clean'
-import { calculateTextHash, generateTxtFilePaths, checkTxtHashExists } from '@/lib/file-hash-utils'
+import {
+  calculateTextHash,
+  generateTxtFilePaths,
+  checkTxtHashExists,
+} from '@/lib/file-hash-utils'
 import { getDatabase } from '@/lib/database'
 import { addDocuments } from '@/lib/langchain/vectorstore'
 import { Document } from '@langchain/core/documents'
@@ -238,7 +242,7 @@ async function processSingleFile(file: PendingFile) {
 
     // 10. Создаем документы для векторной БД
     const documents = chunks.map(
-      (chunk, index) =>
+      (chunk) =>
         new Document({
           pageContent: chunk.content,
           metadata: {

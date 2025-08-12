@@ -158,7 +158,7 @@ export default function UploadPage() {
             )
           )
         }
-      } catch (error) {
+      } catch {
         setFiles((prev) =>
           prev.map((f) =>
             f.id === fileData.id

@@ -1,5 +1,5 @@
 import { ChatMessage } from './types'
-import { RAGSettings } from '@/lib/settings-service'
+import { RAGSettings, SettingsService } from '@/lib/settings-service'
 
 // Создает специализированный промпт для духовного ассистента
 function createSpiritualAssistantPrompt(context?: string): string {
@@ -38,7 +38,7 @@ async function loadModelSettings() {
     OPENAI_CHAT_MODEL = await RAGSettings.getAIModel()
   } catch {}
   try {
-    const model = await RAGSettings.getSettingValue<string>(
+    const model = await SettingsService.getSettingValue<string>(
       'embedding_model',
       'text-embedding-3-small'
     )
