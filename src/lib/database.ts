@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3'
 import { join } from 'path'
+import fs from 'fs'
 
 let db: Database.Database | null = null
 
@@ -216,55 +217,100 @@ async function initializeDefaultSettings() {
     return
   }
 
-  console.log('🔧 Initializing default system settings...')
+  console.log(
+    '🔧 Initializing default system settings from src/defaults/settings.json...'
+  )
 
-  // Создаем только базовые настройки, если база данных пустая
-  // Остальные настройки должны быть созданы через миграции
-  const defaultSettings = [
-    // Минимальные базовые настройки для первого запуска
-    {
-      category: 'AI_Model_and_Response_Generation',
-      parameter_name: 'openai_chat_model',
-      parameter_value: 'gpt-4o',
-      default_value: 'gpt-4o',
-      parameter_type: 'string',
-      display_name: 'OpenAI Chat Model',
-      description: 'Модель OpenAI для генерации ответов',
-      help_text: 'Выберите модель: gpt-4o, gpt-3.5-turbo, gpt-4-turbo',
-      ui_component: 'select',
-      ui_options: JSON.stringify(['gpt-4o', 'gpt-3.5-turbo', 'gpt-4-turbo']),
-      ui_order: 1,
-    },
-  ]
+  try {
+    const defaultsPath = join(process.cwd(), 'src', 'defaults', 'settings.json')
+    const raw = fs.readFileSync(defaultsPath, 'utf-8')
+    const json = JSON.parse(raw) as Record<
+      string,
+      Array<Record<string, unknown>>
+    >
 
-  for (const setting of defaultSettings) {
-    try {
-      database
-        .prepare(
-          `
-        INSERT OR IGNORE INTO system_settings (
-          category, parameter_name, parameter_value, default_value,
-          parameter_type, display_name, description, help_text,
-          ui_component, ui_options, ui_order
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `
+    const insert = database.prepare(`
+      INSERT OR IGNORE INTO system_settings (
+        category, parameter_name, parameter_value, default_value,
+        parameter_type, display_name, description, help_text,
+        ui_component, ui_options, ui_order,
+        requires_restart, is_sensitive, is_readonly
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `)
+
+    for (const [category, items] of Object.entries(json)) {
+      if (!Array.isArray(items)) continue
+      for (const item of items) {
+        const parameter_name = String(item.parameter_name || '')
+        if (!parameter_name) continue
+        const parameter_value = String(
+          item.parameter_value ?? item.default_value ?? ''
         )
-        .run(
-          setting.category,
-          setting.parameter_name,
-          setting.parameter_value,
-          setting.default_value,
-          setting.parameter_type,
-          setting.display_name,
-          setting.description,
-          setting.help_text,
-          setting.ui_component,
-          setting.ui_options,
-          setting.ui_order
-        )
-    } catch (error) {
-      console.warn(`Failed to insert setting ${setting.parameter_name}:`, error)
+        const default_value = String(item.default_value ?? parameter_value)
+        const parameter_type = String(item.parameter_type || 'string')
+        const display_name = String(item.display_name || parameter_name)
+        const description = item.description ? String(item.description) : null
+        const help_text = item.help_text ? String(item.help_text) : null
+        const ui_component = String(item.ui_component || 'input')
+        const ui_options =
+          item.ui_options !== undefined && item.ui_options !== null
+            ? String(item.ui_options)
+            : null
+        const ui_order = Number.isFinite(Number(item.ui_order))
+          ? Number(item.ui_order)
+          : 0
+        const requires_restart =
+          (item.requires_restart as boolean | undefined) ?? false
+        const is_sensitive = (item.is_sensitive as boolean | undefined) ?? false
+        const is_readonly = (item.is_readonly as boolean | undefined) ?? false
+
+        try {
+          insert.run(
+            category,
+            parameter_name,
+            parameter_value,
+            default_value,
+            parameter_type,
+            display_name,
+            description,
+            help_text,
+            ui_component,
+            ui_options,
+            ui_order,
+            requires_restart ? 1 : 0,
+            is_sensitive ? 1 : 0,
+            is_readonly ? 1 : 0
+          )
+        } catch (error) {
+          console.warn(`Failed to insert setting ${parameter_name}:`, error)
+        }
+      }
     }
+  } catch (error) {
+    console.warn(
+      '⚠️ Failed to load defaults from src/defaults/settings.json. Falling back to minimal defaults.',
+      error
+    )
+    const insert = database.prepare(`
+      INSERT OR IGNORE INTO system_settings (
+        category, parameter_name, parameter_value, default_value,
+        parameter_type, display_name, description, help_text,
+        ui_component, ui_options, ui_order
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `)
+    insert.run(
+      'AI_Model_and_Response_Generation',
+      'openai_chat_model',
+      'gpt-4o',
+      'gpt-4o',
+      'string',
+      'OpenAI Chat Model',
+      'Модель OpenAI для генерации ответов',
+      'Выберите модель: gpt-4o, gpt-3.5-turbo, gpt-4-turbo',
+      'select',
+      JSON.stringify(['gpt-4o', 'gpt-3.5-turbo', 'gpt-4-turbo']),
+      1
+    )
   }
 }
 

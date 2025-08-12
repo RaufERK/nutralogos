@@ -139,9 +139,15 @@ export function useWebSocket(): UseWebSocketReturn {
     }
 
     try {
-      const wsUrl = `ws://localhost:${
-        process.env.NEXT_PUBLIC_WEBSOCKET_PORT || '3001'
-      }`
+      const isBrowser = typeof window !== 'undefined'
+      const port = process.env.NEXT_PUBLIC_WEBSOCKET_PORT || '3001'
+      let wsUrl = `ws://localhost:${port}`
+
+      if (isBrowser) {
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+        const host = window.location.hostname
+        wsUrl = `${protocol}://${host}:${port}`
+      }
       console.log('🔗 Connecting to WebSocket:', wsUrl)
 
       wsRef.current = new WebSocket(wsUrl)
@@ -198,8 +204,6 @@ export function useWebSocket(): UseWebSocketReturn {
       setConnectionError('Не удалось создать подключение')
     }
   }, [handleWebSocketMessage])
-
-  
 
   const sendStreamingRequest = useCallback(
     async (question: string, context?: unknown[]): Promise<string> => {

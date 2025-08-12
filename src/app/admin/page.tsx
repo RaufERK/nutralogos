@@ -1,32 +1,10 @@
 import Link from 'next/link'
 import { LibraryStats } from './components/LibraryStats'
 import { SyncButton } from './components/SyncButton'
+import { getSystemStats } from '@/lib/stats'
 
 export default async function AdminPage() {
-  // Получаем статистику из нового API
-  const response = await fetch('/api/stats', {
-    cache: 'no-store',
-    headers: { 'Content-Type': 'application/json' },
-  })
-
-  let stats = {
-    totalFiles: 0,
-    totalSize: 0,
-    library: {
-      uploaded: 0,
-      embedded: 0,
-      duplicateContent: 0,
-      failed: 0,
-    },
-    syncNeeded: false,
-    byFormat: {},
-    processingProgress: 0,
-  }
-
-  if (response.ok) {
-    const data = await response.json()
-    stats = data.stats
-  }
+  const stats = await getSystemStats()
 
   const cards = [
     {

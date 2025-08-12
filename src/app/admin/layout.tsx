@@ -21,6 +21,13 @@ export default async function AdminLayout({
 
   return (
     <div className='min-h-screen bg-gray-900/40 relative z-10'>
+      <div
+        className='fixed top-1 left-2 z-50 text-xs px-2 py-0.5 rounded'
+        style={{ color: '#d1d5db', background: 'transparent' }}
+        title='ENV_PATH'
+      >
+        {process.env.ENV_PATH || ''}
+      </div>
       <nav className='bg-indigo-900 border-b border-gray-700'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='flex justify-between h-16'>
