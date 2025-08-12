@@ -29,13 +29,24 @@ export class StreamingWebSocketServer {
     this.wss = new WebSocketServer({
       port,
       verifyClient: (info: { origin?: string }) => {
-        // Базовая проверка origin для безопасности
         const origin = info.origin
-        const allowedOrigins = [
+        const defaultOrigins = [
           'http://localhost:3000',
           'http://127.0.0.1:3000',
           'https://localhost:3000',
         ]
+        const envOrigins = (process.env.ALLOWED_ORIGINS || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+        const nextauthUrl = process.env.NEXTAUTH_URL
+        const allowedOrigins = Array.from(
+          new Set([
+            ...defaultOrigins,
+            ...envOrigins,
+            ...(nextauthUrl ? [nextauthUrl] : []),
+          ])
+        )
         return !origin || allowedOrigins.includes(origin)
       },
     })
