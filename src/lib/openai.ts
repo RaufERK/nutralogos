@@ -1,4 +1,5 @@
 import { ChatMessage } from './types'
+import { RAGSettings } from '@/lib/settings-service'
 
 // Создает специализированный промпт для духовного ассистента
 function createSpiritualAssistantPrompt(context?: string): string {
@@ -28,9 +29,25 @@ ${context}
 }
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
-const OPENAI_EMBEDDING_MODEL =
-  process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small'
-const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o'
+// Модели теперь берём из настроек БД с безопасными дефолтами
+let OPENAI_EMBEDDING_MODEL = 'text-embedding-3-small'
+let OPENAI_CHAT_MODEL = 'gpt-4o'
+
+async function loadModelSettings() {
+  try {
+    OPENAI_CHAT_MODEL = await RAGSettings.getAIModel()
+  } catch {}
+  try {
+    const model = await RAGSettings.getSettingValue<string>(
+      'embedding_model',
+      'text-embedding-3-small'
+    )
+    OPENAI_EMBEDDING_MODEL = model
+  } catch {}
+}
+
+// Инициализируем значения один раз при первом импорте
+void loadModelSettings()
 
 if (!OPENAI_API_KEY) {
   throw new Error('OPENAI_API_KEY is not set in environment variables')
