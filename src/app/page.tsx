@@ -306,7 +306,7 @@ export default function Home() {
                         value={question}
                         onChange={(e) => setQuestion(e.target.value)}
                         placeholder='Задайте ваш вопрос...'
-                        className='w-full px-4 py-3 pr-12 bg-gray-700 border-2 border-gray-500 rounded-lg focus:ring-0 focus:border-2 focus:border-blue-500 hover:border-blue-400 outline-none text-white placeholder-gray-400 transition-colors'
+                        className='w-full px-4 py-3 pr-12 bg-gray-700 border-2 border-gray-500 rounded-lg focus:ring-0 focus:border-2 focus:border-emerald-500 hover:border-blue-400 outline-none text-white placeholder-gray-400 transition-colors'
                         disabled={isLoading}
                       />
                       <button
@@ -520,7 +520,7 @@ export default function Home() {
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   placeholder='Задайте ваш вопрос...'
-                  className='w-full px-4 py-3 pr-12 bg-gray-700 border-2 border-gray-500 rounded-lg focus:ring-0 focus:border-2 focus:border-blue-500 hover:border-blue-400 outline-none text-white placeholder-gray-400 transition-colors'
+                  className='w-full px-4 py-3 pr-12 bg-gray-700 border-2 border-gray-500 rounded-lg focus:ring-0 focus:border-2 focus:border-emerald-500 hover:border-blue-400 outline-none text-white placeholder-gray-400 transition-colors'
                   disabled={isLoading}
                 />
                 <button
