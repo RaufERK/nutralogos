@@ -306,7 +306,7 @@ export default function Home() {
                         value={question}
                         onChange={(e) => setQuestion(e.target.value)}
                         placeholder='Задайте ваш вопрос...'
-                        className='w-full px-4 py-3 pr-12 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-white placeholder-gray-400'
+                        className='w-full px-4 py-3 pr-12 bg-gray-700 border-2 border-gray-500 rounded-lg focus:ring-0 focus:border-2 focus:border-зш-500 hover:border-blue-400 outline-none text-white placeholder-gray-400 transition-colors'
                         disabled={isLoading}
                       />
                       <button
@@ -351,11 +351,7 @@ export default function Home() {
                 {/* Answer - показываем только если есть ответ или это streaming */}
                 {(message.answer || isLoading) && (
                   <div
-                    className={`rounded-lg p-6 border ${
-                      message.hasContext
-                        ? 'bg-purple-900/60 border-purple-700/80'
-                        : 'bg-indigo-900/60 border-indigo-700/80'
-                    }`}
+                    className={`rounded-lg p-6 border bg-indigo-900/60 border-indigo-700/80`}
                   >
                     <div className='flex items-start gap-3 mb-4'>
                       <div
@@ -487,7 +483,7 @@ export default function Home() {
 
       {/* 📌 Фиксированная панель ввода - всегда внизу экрана */}
       {(messages.length > 0 || isLoading || error) && (
-        <div className='fixed bottom-0 left-0 right-0 border-t border-gray-700 bg-indigo-900/95 backdrop-blur-sm p-4 z-20'>
+        <div className='fixed bottom-0 left-0 right-0 bg-transparent p-4 z-20'>
           <div className='max-w-4xl mx-auto'>
             {/* Context Status in Fixed Panel */}
             {isContextActive && messageCount > 0 && (
@@ -524,7 +520,7 @@ export default function Home() {
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   placeholder='Задайте ваш вопрос...'
-                  className='w-full px-4 py-3 pr-12 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-white placeholder-gray-400'
+                  className='w-full px-4 py-3 pr-12 bg-gray-700 border-2 border-gray-500 rounded-lg focus:ring-0 focus:border-2 focus:border-blue-500 hover:border-blue-400 outline-none text-white placeholder-gray-400 transition-colors'
                   disabled={isLoading}
                 />
                 <button
