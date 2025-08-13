@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Document } from '@/lib/types'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import StreamingMarkdown from '@/components/StreamingMarkdown'
 import { useChatContext } from '@/hooks/useChatContext'
 import { useWebSocket } from '@/hooks/useWebSocket'
 
@@ -352,8 +353,8 @@ export default function Home() {
                   <div
                     className={`rounded-lg p-6 border ${
                       message.hasContext
-                        ? 'bg-purple-900/70 border-purple-700'
-                        : 'bg-indigo-900/70 border-indigo-700'
+                        ? 'bg-purple-900/60 border-purple-700/80'
+                        : 'bg-indigo-900/60 border-indigo-700/80'
                     }`}
                   >
                     <div className='flex items-start gap-3 mb-4'>
@@ -376,12 +377,15 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-                        <div className='prose prose-invert max-w-none prose-p:my-3 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-strong:text-white prose-a:text-blue-300 prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-800/80 prose-pre:border prose-pre:border-gray-700'>
+                        <div className='prose prose-invert max-w-none prose-p:my-5 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-strong:text-white prose-a:text-blue-300 prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-800/80 prose-pre:border prose-pre:border-gray-700'>
                           {message.answer === 'Печатаю ответ...' &&
                           isLoading ? (
                             <>
-                              {getCurrentStreamingContent(message.id) ||
-                                'Генерирую ответ...'}
+                              <StreamingMarkdown
+                                content={
+                                  getCurrentStreamingContent(message.id) || ''
+                                }
+                              />
                               <span className='inline-block w-2 h-5 bg-blue-400 ml-1 animate-pulse'></span>
                             </>
                           ) : (
