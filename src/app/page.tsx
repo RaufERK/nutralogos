@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Document } from '@/lib/types'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { useChatContext } from '@/hooks/useChatContext'
 import { useWebSocket } from '@/hooks/useWebSocket'
 
@@ -38,8 +40,12 @@ export default function Home() {
   } = useChatContext()
 
   // WebSocket hook для стриминга
-  const { sendStreamingRequest, streamingMessages, clearStreamingMessage, connectionError } =
-    useWebSocket()
+  const {
+    sendStreamingRequest,
+    streamingMessages,
+    clearStreamingMessage,
+    connectionError,
+  } = useWebSocket()
 
   // Ref для автоматического скролла к последнему сообщению
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -370,17 +376,19 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-                        <div className='text-gray-300 leading-relaxed whitespace-pre-wrap'>
-                          {/* Показываем streaming контент для временных сообщений, иначе готовый ответ */}
-                          {message.answer === 'Печатаю ответ...' && isLoading
-                            ? getCurrentStreamingContent(message.id) ||
-                              'Генерирую ответ...'
-                            : message.answer}
-                          {/* Streaming cursor effect */}
+                        <div className='prose prose-invert max-w-none prose-p:my-3 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-strong:text-white prose-a:text-blue-300 prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-800/80 prose-pre:border prose-pre:border-gray-700'>
                           {message.answer === 'Печатаю ответ...' &&
-                            isLoading && (
+                          isLoading ? (
+                            <>
+                              {getCurrentStreamingContent(message.id) ||
+                                'Генерирую ответ...'}
                               <span className='inline-block w-2 h-5 bg-blue-400 ml-1 animate-pulse'></span>
-                            )}
+                            </>
+                          ) : (
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {message.answer}
+                            </ReactMarkdown>
+                          )}
                         </div>
                       </div>
                     </div>
