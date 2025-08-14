@@ -15,6 +15,7 @@ export default async function AdminLayout({
     { title: 'Чат', href: '/', icon: '💬' },
     { title: 'Библиотека знаний', href: '/admin', icon: '📚' },
     { title: 'Управление файлами', href: '/admin/files', icon: '📁' },
+    { title: 'Векторная БД', href: '/admin/vector-db', icon: '🗄️' },
     { title: 'Настройки системы', href: '/admin/settings', icon: '⚙️' },
   ]
 
