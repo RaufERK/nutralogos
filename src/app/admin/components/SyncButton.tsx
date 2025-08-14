@@ -4,9 +4,10 @@ import { useState } from 'react'
 
 interface SyncButtonProps {
   pendingCount: number
+  onSynced?: () => void
 }
 
-export function SyncButton({ pendingCount }: SyncButtonProps) {
+export function SyncButton({ pendingCount, onSynced }: SyncButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<{
     success: boolean
@@ -32,12 +33,7 @@ export function SyncButton({ pendingCount }: SyncButtonProps) {
       const data = await response.json()
       setResult(data)
 
-      if (data.success) {
-        // Перезагружаем страницу через 2 секунды для обновления статистики
-        setTimeout(() => {
-          window.location.reload()
-        }, 2000)
-      }
+      if (data.success) onSynced?.()
     } catch (error) {
       setResult({
         success: false,

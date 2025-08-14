@@ -12,7 +12,19 @@ interface UploadFile {
   error?: string
 }
 
-export default function UploadPage() {
+type UploadVariant = 'default' | 'compact'
+
+export default function UploadPage({
+  variant = 'default',
+  hideHeader = false,
+  onLibraryChanged,
+  clearSignal,
+}: {
+  variant?: UploadVariant
+  hideHeader?: boolean
+  onLibraryChanged?: () => void
+  clearSignal?: number
+}) {
   const [files, setFiles] = useState<UploadFile[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -110,6 +122,12 @@ export default function UploadPage() {
     setFiles((prev) => prev.filter((f) => f.id !== id))
   }
 
+  useEffect(() => {
+    if (typeof clearSignal === 'number') {
+      setFiles([])
+    }
+  }, [clearSignal])
+
   const uploadFiles = async () => {
     if (files.length === 0) return
 
@@ -170,6 +188,7 @@ export default function UploadPage() {
     }
 
     setIsUploading(false)
+    onLibraryChanged?.()
   }
 
   const getStatusColor = (status: UploadFile['status']) => {
@@ -207,26 +226,42 @@ export default function UploadPage() {
   }
 
   return (
-    <div className='space-y-6'>
+    <div className={variant === 'compact' ? 'space-y-3' : 'space-y-6'}>
       {/* Заголовок */}
-      <div className='flex items-center justify-between'>
-        <div>
-          <h1 className='text-2xl font-bold text-white'>Загрузка файлов</h1>
-          <p className='text-gray-400'>
-            Загрузите документы для добавления в базу знаний
-          </p>
+      {!hideHeader && (
+        <div className='flex items-center justify-between'>
+          <div>
+            <h1
+              className={
+                variant === 'compact'
+                  ? 'text-xl font-bold text-white'
+                  : 'text-2xl font-bold text-white'
+              }
+            >
+              Загрузка файлов
+            </h1>
+            <p className='text-gray-400'>
+              Загрузите документы для добавления в базу знаний
+            </p>
+          </div>
+          <Link
+            href='/admin'
+            className={
+              variant === 'compact'
+                ? 'px-3 py-1.5 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm'
+                : 'px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors'
+            }
+          >
+            Назад к дашборду
+          </Link>
         </div>
-        <Link
-          href='/admin'
-          className='px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors'
-        >
-          Назад к дашборду
-        </Link>
-      </div>
+      )}
 
       {/* Drag & Drop зона */}
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+        className={`border-2 border-dashed rounded-lg ${
+          variant === 'compact' ? 'p-4' : 'p-8'
+        } text-center transition-colors ${
           isDragOver
             ? 'border-blue-400 bg-blue-900/40'
             : 'border-gray-600 hover:border-gray-500 bg-gray-800/20'
@@ -235,13 +270,27 @@ export default function UploadPage() {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
       >
-        <div className='space-y-4'>
-          <div className='text-6xl'>📁</div>
+        <div className={variant === 'compact' ? 'space-y-2' : 'space-y-4'}>
+          <div className={variant === 'compact' ? 'text-4xl' : 'text-6xl'}>
+            📁
+          </div>
           <div>
-            <p className='text-lg text-white font-medium'>
+            <p
+              className={
+                variant === 'compact'
+                  ? 'text-base text-white font-medium'
+                  : 'text-lg text-white font-medium'
+              }
+            >
               Перетащите файлы сюда или нажмите для выбора
             </p>
-            <p className='text-gray-400 mt-2'>
+            <p
+              className={
+                variant === 'compact'
+                  ? 'text-gray-400 mt-1 text-sm'
+                  : 'text-gray-400 mt-2'
+              }
+            >
               Поддерживаются: PDF, TXT, DOCX, DOC (максимум {maxFileSizeMB}MB)
             </p>
           </div>
@@ -255,7 +304,11 @@ export default function UploadPage() {
           />
           <label
             htmlFor='file-input'
-            className='inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors'
+            className={
+              variant === 'compact'
+                ? 'inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors text-sm'
+                : 'inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors'
+            }
           >
             Выбрать файлы
           </label>
@@ -264,9 +317,15 @@ export default function UploadPage() {
 
       {/* Список файлов */}
       {files.length > 0 && (
-        <div className='space-y-4'>
+        <div className={variant === 'compact' ? 'space-y-2' : 'space-y-4'}>
           <div className='flex items-center justify-between'>
-            <h2 className='text-lg font-semibold text-white'>
+            <h2
+              className={
+                variant === 'compact'
+                  ? 'text-base font-semibold text-white'
+                  : 'text-lg font-semibold text-white'
+              }
+            >
               Файлы для загрузки ({files.length})
             </h2>
             <button
@@ -274,22 +333,40 @@ export default function UploadPage() {
               disabled={
                 isUploading || files.every((f) => f.status !== 'pending')
               }
-              className='px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors'
+              className={
+                variant === 'compact'
+                  ? 'px-4 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors text-sm'
+                  : 'px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors'
+              }
             >
               {isUploading ? 'Загружается...' : 'Загрузить все'}
             </button>
           </div>
 
-          <div className='space-y-3'>
+          <div className={variant === 'compact' ? 'space-y-2' : 'space-y-3'}>
             {files.map((fileData) => (
               <div
                 key={fileData.id}
-                className='bg-gray-800/90 rounded-lg p-4 border border-gray-700'
+                className={
+                  variant === 'compact'
+                    ? 'bg-gray-800/90 rounded-lg p-2.5 border border-gray-700'
+                    : 'bg-gray-800/90 rounded-lg p-4 border border-gray-700'
+                }
               >
                 <div className='flex items-center justify-between'>
                   <div className='flex-1'>
-                    <div className='flex items-center space-x-3'>
-                      <span className='text-2xl'>
+                    <div
+                      className={
+                        variant === 'compact'
+                          ? 'flex items-center space-x-2'
+                          : 'flex items-center space-x-3'
+                      }
+                    >
+                      <span
+                        className={
+                          variant === 'compact' ? 'text-xl' : 'text-2xl'
+                        }
+                      >
                         {fileData.file.type === 'application/pdf'
                           ? '📄'
                           : fileData.file.type === 'text/plain'
@@ -302,10 +379,22 @@ export default function UploadPage() {
                           : '📝'}
                       </span>
                       <div className='flex-1'>
-                        <p className='text-white font-medium'>
+                        <p
+                          className={
+                            variant === 'compact'
+                              ? 'text-white font-medium text-sm'
+                              : 'text-white font-medium'
+                          }
+                        >
                           {fileData.file.name}
                         </p>
-                        <p className='text-gray-400 text-sm'>
+                        <p
+                          className={
+                            variant === 'compact'
+                              ? 'text-gray-400 text-xs'
+                              : 'text-gray-400 text-sm'
+                          }
+                        >
                           {(fileData.file.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
@@ -313,10 +402,20 @@ export default function UploadPage() {
 
                     {/* Прогресс-бар */}
                     {fileData.status === 'uploading' && (
-                      <div className='mt-3'>
-                        <div className='w-full bg-gray-700 rounded-full h-2'>
+                      <div className={variant === 'compact' ? 'mt-2' : 'mt-3'}>
+                        <div
+                          className={
+                            variant === 'compact'
+                              ? 'w-full bg-gray-700 rounded-full h-1.5'
+                              : 'w-full bg-gray-700 rounded-full h-2'
+                          }
+                        >
                           <div
-                            className='bg-blue-500 h-2 rounded-full transition-all duration-300'
+                            className={
+                              variant === 'compact'
+                                ? 'bg-blue-500 h-1.5 rounded-full transition-all duration-300'
+                                : 'bg-blue-500 h-2 rounded-full transition-all duration-300'
+                            }
                             style={{ width: `${fileData.progress}%` }}
                           />
                         </div>
@@ -324,14 +423,28 @@ export default function UploadPage() {
                     )}
 
                     {/* Статус */}
-                    <div className='mt-2 flex items-center space-x-2'>
+                    <div
+                      className={
+                        variant === 'compact'
+                          ? 'mt-1.5 flex items-center space-x-2'
+                          : 'mt-2 flex items-center space-x-2'
+                      }
+                    >
                       <span
-                        className={`text-sm ${getStatusColor(fileData.status)}`}
+                        className={`${
+                          variant === 'compact' ? 'text-xs' : 'text-sm'
+                        } ${getStatusColor(fileData.status)}`}
                       >
                         {getStatusText(fileData.status)}
                       </span>
                       {fileData.error && (
-                        <span className='text-red-400 text-sm'>
+                        <span
+                          className={
+                            variant === 'compact'
+                              ? 'text-red-400 text-xs'
+                              : 'text-red-400 text-sm'
+                          }
+                        >
                           {fileData.error}
                         </span>
                       )}
@@ -342,7 +455,11 @@ export default function UploadPage() {
                   {fileData.status === 'pending' && (
                     <button
                       onClick={() => removeFile(fileData.id)}
-                      className='text-red-400 hover:text-red-300 p-2'
+                      className={
+                        variant === 'compact'
+                          ? 'text-red-400 hover:text-red-300 p-1.5 text-sm'
+                          : 'text-red-400 hover:text-red-300 p-2'
+                      }
                     >
                       ✕
                     </button>
