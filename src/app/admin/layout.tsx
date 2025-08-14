@@ -14,7 +14,6 @@ export default async function AdminLayout({
   const navigationItems = [
     { title: 'Чат', href: '/', icon: '💬' },
     { title: 'Библиотека знаний', href: '/admin', icon: '📚' },
-    { title: 'Загрузить файл', href: '/admin', icon: '📤' },
     { title: 'Управление файлами', href: '/admin/files', icon: '📁' },
     { title: 'Настройки системы', href: '/admin/settings', icon: '⚙️' },
   ]
