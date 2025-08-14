@@ -50,6 +50,8 @@ export default function Home() {
 
   // Ref для автоматического скролла к последнему сообщению
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messageStartRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const [scrollTargetId, setScrollTargetId] = useState<string | null>(null)
 
   // Загружаем приветственное сообщение из настроек при инициализации
   useEffect(() => {
@@ -68,18 +70,35 @@ export default function Home() {
     loadWelcomeMessage()
   }, [])
 
-  // Простой и надежный автоскролл - к концу placeholder при любых изменениях
+  // Плавный автоскролл вниз только во время стрима
   useEffect(() => {
-    if (messages.length > 0 || isLoading) {
-      setTimeout(() => {
+    if (isLoading) {
+      const id = setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({
           behavior: 'smooth',
-          block: 'end', // Всегда к концу - включая placeholder
+          block: 'end',
           inline: 'nearest',
         })
-      }, 200)
+      }, 150)
+      return () => clearTimeout(id)
     }
-  }, [messages.length, isLoading, streamingMessages])
+  }, [isLoading, streamingMessages])
+
+  // После завершения – прокрутка к началу готового сообщения
+  useEffect(() => {
+    if (!scrollTargetId) return
+    const el = messageStartRefs.current[scrollTargetId]
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+          inline: 'nearest',
+        })
+        setScrollTargetId(null)
+      }, 100)
+    }
+  }, [scrollTargetId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -218,6 +237,7 @@ export default function Home() {
 
           // Очищаем streaming сообщение
           clearStreamingMessage(messageId)
+          setScrollTargetId(tempMessage.id)
           setIsLoading(false)
           break
         } else {
@@ -346,6 +366,11 @@ export default function Home() {
             {/* Messages History */}
             {messages.map((message) => (
               <div key={message.id} className='space-y-4'>
+                <div
+                  ref={(el) => {
+                    messageStartRefs.current[message.id] = el
+                  }}
+                />
                 {/* Question */}
                 <div className='flex justify-end'>
                   <div className='max-w-[80%] bg-gray-700 text-white rounded-lg px-4 py-3'>
