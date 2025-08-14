@@ -52,6 +52,7 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messageStartRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [scrollTargetId, setScrollTargetId] = useState<string | null>(null)
+  const [scrolledToStart, setScrolledToStart] = useState(false)
 
   const formatParagraphs = (text: string): string => {
     const normalized = text.replace(/\r\n/g, '\n')
@@ -76,19 +77,24 @@ export default function Home() {
     loadWelcomeMessage()
   }, [])
 
-  // Плавный автоскролл вниз только во время стрима
+  // При старте печати один раз прокручиваем к началу нового сообщения и больше не двигаем экран во время печати
   useEffect(() => {
-    if (isLoading) {
-      const id = setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'end',
-          inline: 'nearest',
-        })
-      }, 150)
-      return () => clearTimeout(id)
+    if (isLoading && !scrolledToStart) {
+      const tempMessage = messages.find((m) => m.answer === 'Печатаю ответ...')
+      const el = tempMessage ? messageStartRefs.current[tempMessage.id] : null
+      if (el) {
+        const id = setTimeout(() => {
+          el.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest',
+          })
+          setScrolledToStart(true)
+        }, 100)
+        return () => clearTimeout(id)
+      }
     }
-  }, [isLoading, streamingMessages])
+  }, [isLoading, scrolledToStart, messages])
 
   // После завершения – прокрутка к началу готового сообщения
   useEffect(() => {
@@ -114,6 +120,7 @@ export default function Home() {
     const currentQuestion = question.trim()
     setQuestion('') // Очищаем инпут сразу после отправки
     setIsLoading(true)
+    setScrolledToStart(false)
     setError('')
 
     // 🔥 Сразу показываем вопрос пользователя (временное сообщение)
@@ -452,14 +459,15 @@ export default function Home() {
 
                     {/* Collapsible Sources */}
                     {message.hasContext && message.sources.length > 0 && (
-                      <div className='mt-6 pt-6 border-t border-gray-700'>
+                      <div className='mt-2 pt-2 border-t border-gray-700/60'>
                         <button
                           onClick={() => toggleSourceCollapse(message.id)}
-                          className='flex items-center gap-2 text-white font-medium mb-3 hover:text-blue-300 transition-colors'
+                          className='flex items-center gap-1.5 text-xs text-blue-400 mb-2 hover:text-blue-300 transition-colors'
                         >
-                          <span>Источники ({message.sources.length}):</span>
+                          <span aria-hidden='true'>📚</span>
+                          <span>Источники ({message.sources.length})</span>
                           <svg
-                            className={`w-4 h-4 transition-transform ${
+                            className={`w-3 h-3 transition-transform ${
                               !collapsedSources.has(message.id)
                                 ? 'rotate-180'
                                 : ''
@@ -478,29 +486,27 @@ export default function Home() {
                         </button>
 
                         {!collapsedSources.has(message.id) && (
-                          <div className='space-y-3'>
-                            {message.sources.map((source, index) => (
+                          <div className='space-y-1.5'>
+                            {message.sources.map((source) => (
                               <div
                                 key={source.id}
-                                className='bg-gray-700/90 rounded-lg p-4 border border-gray-600'
+                                className='text-xs text-gray-400'
                               >
-                                <div className='flex items-start gap-3'>
-                                  <span className='flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium'>
-                                    {index + 1}
-                                  </span>
+                                <div className='flex items-start gap-2'>
+                                  <span className='mt-1 text-gray-500'>•</span>
                                   <div className='flex-1'>
-                                    <p className='text-gray-300 text-sm leading-relaxed'>
+                                    <p className='leading-relaxed'>
                                       {source.content}
                                     </p>
                                     {source.metadata && (
-                                      <div className='mt-3 flex gap-2'>
+                                      <div className='mt-1.5 flex gap-1.5'>
                                         {source.metadata.category && (
-                                          <span className='px-2 py-1 bg-blue-600/20 text-blue-400 text-xs rounded border border-blue-600/30'>
+                                          <span className='px-1.5 py-0.5 bg-blue-600/10 text-blue-300 text-[10px] rounded border border-blue-600/30'>
                                             {source.metadata.category}
                                           </span>
                                         )}
                                         {source.metadata.topic && (
-                                          <span className='px-2 py-1 bg-green-600/20 text-green-400 text-xs rounded border border-green-600/30'>
+                                          <span className='px-1.5 py-0.5 bg-green-600/10 text-green-300 text-[10px] rounded border border-green-600/30'>
                                             {source.metadata.topic}
                                           </span>
                                         )}
