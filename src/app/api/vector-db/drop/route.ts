@@ -19,7 +19,7 @@ export async function POST() {
 
     try {
       await client.deleteCollection(collectionName)
-    } catch (e) {
+    } catch {
       // ignore if not exists
     }
 

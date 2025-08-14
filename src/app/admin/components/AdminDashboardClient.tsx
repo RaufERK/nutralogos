@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { LibraryStats } from './LibraryStats'
-import { SyncButton } from './SyncButton'
 import UploadPage from '../components/UploadWidget'
 
 type SystemStats = {
@@ -22,19 +21,15 @@ type SystemStats = {
 
 export default function AdminDashboardClient() {
   const [stats, setStats] = useState<SystemStats | null>(null)
-  const [loading, setLoading] = useState(false)
   const [clearSignal, setClearSignal] = useState(0)
 
   const fetchStats = useCallback(async () => {
     try {
-      setLoading(true)
       const res = await fetch('/api/stats', { cache: 'no-store' })
       const data = await res.json()
       if (data?.success && data.stats) setStats(data.stats as SystemStats)
-    } catch (e) {
+    } catch {
       // noop
-    } finally {
-      setLoading(false)
     }
   }, [])
 
