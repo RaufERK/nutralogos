@@ -76,24 +76,18 @@ export default function AdminDashboardClient() {
 
       {/* Если нужна синхронизация */}
       {stats?.syncNeeded && (
-        <div className='bg-gradient-to-r from-orange-500 to-red-500 rounded-lg shadow p-6 text-white'>
-          <div className='flex items-center justify-between'>
-            <div>
-              <h2 className='text-lg font-semibold mb-2'>
-                🔄 Требуется синхронизация
-              </h2>
-              <p className='text-orange-100 mb-4'>
-                {stats.library.uploaded} файлов ожидают обработки для поиска
-              </p>
-            </div>
-            <SyncButton
-              pendingCount={stats.library.uploaded}
-              onSynced={() => {
-                fetchStats()
-                setClearSignal((v) => v + 1)
-              }}
-            />
-          </div>
+        <div className='bg-gradient-to-r from-orange-500 to-red-500 rounded-lg shadow p-4 md:p-6 text-white'>
+          <button
+            onClick={async () => {
+              const res = await fetch('/api/sync', { method: 'POST' })
+              await res.json().catch(() => ({}))
+              fetchStats()
+              setClearSignal((v) => v + 1)
+            }}
+            className='w-full px-6 py-3 rounded-lg font-semibold text-white transition-all duration-200 bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30'
+          >
+            {`🔄 Синхронизировать (${stats.library.uploaded} файлов)`}
+          </button>
         </div>
       )}
 

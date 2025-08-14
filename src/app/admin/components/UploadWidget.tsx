@@ -234,7 +234,9 @@ export default function UploadPage({
       <div
         className={`border-2 border-dashed rounded-lg ${
           variant === 'compact' ? 'p-4' : 'p-8'
-        } text-center transition-colors ${
+        } ${
+          variant === 'compact' ? 'text-left' : 'text-center'
+        } transition-colors ${
           isDragOver
             ? 'border-blue-400 bg-blue-900/40'
             : 'border-gray-600 hover:border-gray-500 bg-gray-800/20'
@@ -243,49 +245,64 @@ export default function UploadPage({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
       >
-        <div className={variant === 'compact' ? 'space-y-2' : 'space-y-4'}>
-          <div className={variant === 'compact' ? 'text-4xl' : 'text-6xl'}>
-            📁
+        {variant === 'compact' ? (
+          <div className='flex items-center justify-between gap-4'>
+            <div className='flex items-center gap-3 min-w-0'>
+              <div className='text-3xl'>📁</div>
+              <div className='min-w-0'>
+                <p className='text-white font-medium truncate'>
+                  Перетащите файлы сюда или нажмите для выбора
+                </p>
+                <p className='text-gray-400 text-xs'>
+                  Поддерживаются: PDF, TXT, DOCX, DOC (максимум {maxFileSizeMB}
+                  MB)
+                </p>
+              </div>
+            </div>
+            <div className='flex-shrink-0'>
+              <input
+                type='file'
+                multiple
+                accept='.pdf,.txt,.docx,.doc'
+                onChange={handleFileInput}
+                className='hidden'
+                id='file-input'
+              />
+              <label
+                htmlFor='file-input'
+                className='inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors text-sm'
+              >
+                Выбрать файлы
+              </label>
+            </div>
           </div>
-          <div>
-            <p
-              className={
-                variant === 'compact'
-                  ? 'text-base text-white font-medium'
-                  : 'text-lg text-white font-medium'
-              }
+        ) : (
+          <div className='space-y-4'>
+            <div className='text-6xl'>📁</div>
+            <div>
+              <p className='text-lg text-white font-medium'>
+                Перетащите файлы сюда или нажмите для выбора
+              </p>
+              <p className='text-gray-400 mt-2'>
+                Поддерживаются: PDF, TXT, DOCX, DOC (максимум {maxFileSizeMB}MB)
+              </p>
+            </div>
+            <input
+              type='file'
+              multiple
+              accept='.pdf,.txt,.docx,.doc'
+              onChange={handleFileInput}
+              className='hidden'
+              id='file-input'
+            />
+            <label
+              htmlFor='file-input'
+              className='inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors'
             >
-              Перетащите файлы сюда или нажмите для выбора
-            </p>
-            <p
-              className={
-                variant === 'compact'
-                  ? 'text-gray-400 mt-1 text-sm'
-                  : 'text-gray-400 mt-2'
-              }
-            >
-              Поддерживаются: PDF, TXT, DOCX, DOC (максимум {maxFileSizeMB}MB)
-            </p>
+              Выбрать файлы
+            </label>
           </div>
-          <input
-            type='file'
-            multiple
-            accept='.pdf,.txt,.docx,.doc'
-            onChange={handleFileInput}
-            className='hidden'
-            id='file-input'
-          />
-          <label
-            htmlFor='file-input'
-            className={
-              variant === 'compact'
-                ? 'inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors text-sm'
-                : 'inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors'
-            }
-          >
-            Выбрать файлы
-          </label>
-        </div>
+        )}
       </div>
 
       {files.length > 0 && (
