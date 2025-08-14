@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { headers } from 'next/headers'
+import ConfirmResetButton from './ConfirmResetButton'
 
 async function getStats() {
   const h = await headers()
@@ -83,23 +84,7 @@ export default async function VectorDBPage() {
         </div>
       </div>
 
-      <form
-        action={async () => {
-          'use server'
-          const h = await headers()
-          const host = h.get('host') || 'localhost:3000'
-          const proto = h.get('x-forwarded-proto') || 'http'
-          const base = `${proto}://${host}`
-          await fetch(`${base}/api/vector-db/drop`, { method: 'POST' })
-        }}
-      >
-        <button
-          type='submit'
-          className='px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors border border-red-500'
-        >
-          Удалить все записи
-        </button>
-      </form>
+      <ConfirmResetButton />
     </div>
   )
 }
