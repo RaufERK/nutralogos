@@ -306,37 +306,6 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Context Status */}
-                  {isContextActive && messageCount > 0 && (
-                    <div className='mb-4 flex items-center justify-center gap-4'>
-                      <div className='flex items-center gap-2 text-sm text-blue-400 bg-blue-900/30 px-3 py-2 rounded-lg border border-blue-700/50'>
-                        <svg
-                          className='w-4 h-4'
-                          fill='none'
-                          stroke='currentColor'
-                          viewBox='0 0 24 24'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
-                          />
-                        </svg>
-                        <span>
-                          Контекст активен: {Math.floor(messageCount / 2)}{' '}
-                          диалогов
-                        </span>
-                      </div>
-                      <button
-                        onClick={clearContext}
-                        className='text-sm text-red-400 hover:text-red-300 bg-red-900/30 px-3 py-2 rounded-lg border border-red-700/50 hover:bg-red-900/50 transition-colors'
-                      >
-                        Очистить контекст
-                      </button>
-                    </div>
-                  )}
-
                   <form onSubmit={handleSubmit} className='relative'>
                     <div className='relative'>
                       <input
@@ -372,6 +341,36 @@ export default function Home() {
                       </button>
                     </div>
                   </form>
+                  {/* Context Status moved below input */}
+                  {isContextActive && messageCount > 0 && (
+                    <div className='mt-3 flex items-center justify-between'>
+                      <div className='flex items-center gap-2 text-sm text-blue-400 bg-blue-900/30 px-3 py-2 rounded-lg border border-blue-700/50'>
+                        <svg
+                          className='w-4 h-4'
+                          fill='none'
+                          stroke='currentColor'
+                          viewBox='0 0 24 24'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
+                          />
+                        </svg>
+                        <span>
+                          Контекст активен: {Math.floor(messageCount / 2)}{' '}
+                          диалогов
+                        </span>
+                      </div>
+                      <button
+                        onClick={clearContext}
+                        className='text-sm text-red-400 hover:text-red-300 bg-red-900/30 px-3 py-2 rounded-lg border border-red-700/50 hover:bg-red-900/50 transition-colors'
+                      >
+                        Очистить контекст
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -548,34 +547,6 @@ export default function Home() {
       {(messages.length > 0 || isLoading || error) && (
         <div className='fixed bottom-0 left-0 right-0 bg-transparent p-4 z-20'>
           <div className='max-w-4xl mx-auto'>
-            {/* Context Status in Fixed Panel */}
-            {isContextActive && messageCount > 0 && (
-              <div className='mb-3 flex items-center justify-between'>
-                <div className='flex items-center gap-2 text-xs text-blue-400'>
-                  <svg
-                    className='w-3 h-3'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
-                    />
-                  </svg>
-                  <span>Контекст: {Math.floor(messageCount / 2)} диалогов</span>
-                </div>
-                <button
-                  onClick={clearContext}
-                  className='text-xs text-red-400 hover:text-red-300 transition-colors'
-                >
-                  Очистить
-                </button>
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} className='relative'>
               <div className='relative'>
                 <input
@@ -611,6 +582,34 @@ export default function Home() {
                 </button>
               </div>
             </form>
+
+            {/* Context Status moved below input in fixed panel */}
+            {isContextActive && messageCount > 0 && (
+              <div className='mt-3 flex items-center justify-between'>
+                <div className='flex items-center gap-2 text-xs text-blue-400'>
+                  <svg
+                    className='w-3 h-3'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
+                    />
+                  </svg>
+                  <span>Контекст: {Math.floor(messageCount / 2)} диалогов</span>
+                </div>
+                <button
+                  onClick={clearContext}
+                  className='text-xs text-red-400 hover:text-red-300 transition-colors'
+                >
+                  Очистить
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
