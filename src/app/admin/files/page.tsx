@@ -77,7 +77,7 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
           </p>
         </div>
         <Link
-          href='/admin/upload'
+          href='/admin'
           className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
         >
           Загрузить новый файл
@@ -191,7 +191,7 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
             <div className='text-6xl mb-4'>📁</div>
             <p className='text-gray-400 mb-4'>Файлы не обработаны</p>
             <Link
-              href='/admin/upload'
+              href='/admin'
               className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
             >
               Загрузить первый файл

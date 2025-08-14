@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-// import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 interface UploadFile {
@@ -28,11 +27,10 @@ export default function UploadPage({
   const [files, setFiles] = useState<UploadFile[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-  const [maxFileSizeMB, setMaxFileSizeMB] = useState(50) // default fallback
+  const [maxFileSizeMB, setMaxFileSizeMB] = useState(50)
 
   const generateId = () => Math.random().toString(36).substr(2, 9)
 
-  // Загружаем максимальный размер файла из настроек
   useEffect(() => {
     const loadMaxFileSize = async () => {
       try {
@@ -41,32 +39,25 @@ export default function UploadPage({
           const data = await response.json()
           setMaxFileSizeMB(data.maxFileSizeMB)
         }
-      } catch (error) {
-        console.error('Error loading max file size:', error)
-        // Используем значение по умолчанию 50MB
-      }
+      } catch {}
     }
     loadMaxFileSize()
   }, [])
 
   const validateFile = useCallback(
     (file: File): string | null => {
-      const maxSize = maxFileSizeMB * 1024 * 1024 // Динамический размер из настроек
+      const maxSize = maxFileSizeMB * 1024 * 1024
       const allowedTypes = [
-        'application/pdf', // ✅ PDF - работает стабильно
-        'text/plain', // ✅ TXT - работает отлично
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // ✅ DOCX - работает отлично
-        'application/msword', // ✅ DOC - работает стабильно
+        'application/pdf',
+        'text/plain',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword',
       ]
 
-      if (file.size > maxSize) {
+      if (file.size > maxSize)
         return `Файл слишком большой (максимум ${maxFileSizeMB}MB)`
-      }
-
-      if (!allowedTypes.includes(file.type)) {
+      if (!allowedTypes.includes(file.type))
         return 'Неподдерживаемый тип файла. Поддерживаются: PDF, TXT, DOCX, DOC'
-      }
-
       return null
     },
     [maxFileSizeMB]
@@ -84,7 +75,6 @@ export default function UploadPage({
           error: error || undefined,
         }
       })
-
       setFiles((prev) => [...prev, ...newFiles])
     },
     [validateFile]
@@ -111,32 +101,21 @@ export default function UploadPage({
 
   const handleFileInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files) {
-        handleFiles(e.target.files)
-      }
+      if (e.target.files) handleFiles(e.target.files)
     },
     [handleFiles]
   )
 
-  const removeFile = (id: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id))
-  }
-
   useEffect(() => {
-    if (typeof clearSignal === 'number') {
-      setFiles([])
-    }
+    if (typeof clearSignal === 'number') setFiles([])
   }, [clearSignal])
 
   const uploadFiles = async () => {
     if (files.length === 0) return
-
     setIsUploading(true)
     const pendingFiles = files.filter((f) => f.status === 'pending')
-
     for (const fileData of pendingFiles) {
       try {
-        // Обновляем статус на uploading
         setFiles((prev) =>
           prev.map((f) =>
             f.id === fileData.id
@@ -144,15 +123,12 @@ export default function UploadPage({
               : f
           )
         )
-
         const formData = new FormData()
         formData.append('file', fileData.file)
-
         const response = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
         })
-
         if (response.ok) {
           await response.json()
           setFiles((prev) =>
@@ -186,7 +162,6 @@ export default function UploadPage({
         )
       }
     }
-
     setIsUploading(false)
     onLibraryChanged?.()
   }
@@ -227,7 +202,6 @@ export default function UploadPage({
 
   return (
     <div className={variant === 'compact' ? 'space-y-3' : 'space-y-6'}>
-      {/* Заголовок */}
       {!hideHeader && (
         <div className='flex items-center justify-between'>
           <div>
@@ -257,7 +231,6 @@ export default function UploadPage({
         </div>
       )}
 
-      {/* Drag & Drop зона */}
       <div
         className={`border-2 border-dashed rounded-lg ${
           variant === 'compact' ? 'p-4' : 'p-8'
@@ -315,7 +288,6 @@ export default function UploadPage({
         </div>
       </div>
 
-      {/* Список файлов */}
       {files.length > 0 && (
         <div className={variant === 'compact' ? 'space-y-2' : 'space-y-4'}>
           <div className='flex items-center justify-between'>
@@ -399,8 +371,6 @@ export default function UploadPage({
                         </p>
                       </div>
                     </div>
-
-                    {/* Прогресс-бар */}
                     {fileData.status === 'uploading' && (
                       <div className={variant === 'compact' ? 'mt-2' : 'mt-3'}>
                         <div
@@ -421,8 +391,6 @@ export default function UploadPage({
                         </div>
                       </div>
                     )}
-
-                    {/* Статус */}
                     <div
                       className={
                         variant === 'compact'
@@ -450,11 +418,13 @@ export default function UploadPage({
                       )}
                     </div>
                   </div>
-
-                  {/* Кнопка удаления */}
                   {fileData.status === 'pending' && (
                     <button
-                      onClick={() => removeFile(fileData.id)}
+                      onClick={() =>
+                        setFiles((prev) =>
+                          prev.filter((f) => f.id !== fileData.id)
+                        )
+                      }
                       className={
                         variant === 'compact'
                           ? 'text-red-400 hover:text-red-300 p-1.5 text-sm'

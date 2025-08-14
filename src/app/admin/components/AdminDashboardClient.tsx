@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { LibraryStats } from './LibraryStats'
 import { SyncButton } from './SyncButton'
-import UploadPage from '../upload/page'
+import UploadPage from '../components/UploadWidget'
 
 type SystemStats = {
   totalFiles: number
