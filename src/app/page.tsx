@@ -53,6 +53,12 @@ export default function Home() {
   const messageStartRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [scrollTargetId, setScrollTargetId] = useState<string | null>(null)
 
+  const formatParagraphs = (text: string): string => {
+    const normalized = text.replace(/\r\n/g, '\n')
+    const compressed = normalized.replace(/\n{2,}/g, '\n\n')
+    return compressed.replace(/\n(?!\n)/g, '\n\n')
+  }
+
   // Загружаем приветственное сообщение из настроек при инициализации
   useEffect(() => {
     const loadWelcomeMessage = async () => {
@@ -415,16 +421,32 @@ export default function Home() {
                       {message.answer === 'Печатаю ответ...' && isLoading ? (
                         <>
                           <StreamingMarkdown
-                            content={
+                            content={formatParagraphs(
                               getCurrentStreamingContent(message.id) || ''
-                            }
+                            )}
                           />
                           <span className='inline-block w-2 h-5 bg-blue-400 ml-1 animate-pulse'></span>
                         </>
                       ) : (
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {message.answer}
-                        </ReactMarkdown>
+                        <div>
+                          {(message.answer || '')
+                            .replace(/\r\n/g, '\n')
+                            .replace(/\n{2,}/g, '\n\n')
+                            .replace(/\n(?!\n)/g, '\n\n')
+                            .split('\n\n')
+                            .map((block, idx, arr) => (
+                              <div key={idx}>
+                                {block && (
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {block}
+                                  </ReactMarkdown>
+                                )}
+                                {idx < arr.length - 1 && (
+                                  <div className='h-4' aria-hidden='true'></div>
+                                )}
+                              </div>
+                            ))}
+                        </div>
                       )}
                     </div>
 
