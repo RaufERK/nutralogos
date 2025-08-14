@@ -237,6 +237,11 @@ export default function Home() {
 
   return (
     <div className='min-h-screen bg-gray-900/40 flex flex-col relative z-10'>
+      {isLoading && (
+        <div className='fixed top-0 left-0 right-0 h-0.5 z-50 overflow-hidden'>
+          <div className='loading-bar-emerald'></div>
+        </div>
+      )}
       {/* Main Content - Четкое разделение пространств */}
       <main
         className='flex-1 flex flex-col'
@@ -353,18 +358,24 @@ export default function Home() {
                   <div
                     className={`rounded-lg p-6 border bg-indigo-900/60 border-indigo-700/80`}
                   >
-                    <div className='flex items-start gap-3 mb-4'>
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          message.hasContext ? 'bg-purple-600' : 'bg-yellow-600'
-                        }`}
-                      >
-                        <span className='text-white text-sm font-medium'>
-                          AI
-                        </span>
-                      </div>
-                      <div className='flex-1'>
-                        <div className='flex items-center gap-3 mb-2'>
+                    <div className='mb-4'>
+                      <div className='grid grid-cols-[auto_1fr] items-center gap-3'>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            message.hasContext
+                              ? 'bg-purple-600'
+                              : 'bg-yellow-600'
+                          } ${
+                            isLoading && message.answer === 'Печатаю ответ...'
+                              ? 'animate-spin'
+                              : ''
+                          }`}
+                        >
+                          <span className='text-white text-sm font-medium'>
+                            AI
+                          </span>
+                        </div>
+                        <div className='flex items-center gap-3'>
                           <h3 className='text-white font-medium'>Ответ:</h3>
                           {isLoading && !message.answer && (
                             <div className='flex items-center gap-2 text-xs text-blue-400'>
@@ -373,24 +384,23 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-                        <div className='prose prose-invert max-w-none prose-p:my-5 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-strong:text-white prose-a:text-blue-300 prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-800/80 prose-pre:border prose-pre:border-gray-700'>
-                          {message.answer === 'Печатаю ответ...' &&
-                          isLoading ? (
-                            <>
-                              <StreamingMarkdown
-                                content={
-                                  getCurrentStreamingContent(message.id) || ''
-                                }
-                              />
-                              <span className='inline-block w-2 h-5 bg-blue-400 ml-1 animate-pulse'></span>
-                            </>
-                          ) : (
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {message.answer}
-                            </ReactMarkdown>
-                          )}
-                        </div>
                       </div>
+                    </div>
+                    <div className='prose prose-invert max-w-none prose-p:my-5 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-strong:text-white prose-a:text-blue-300 prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-800/80 prose-pre:border prose-pre:border-gray-700'>
+                      {message.answer === 'Печатаю ответ...' && isLoading ? (
+                        <>
+                          <StreamingMarkdown
+                            content={
+                              getCurrentStreamingContent(message.id) || ''
+                            }
+                          />
+                          <span className='inline-block w-2 h-5 bg-blue-400 ml-1 animate-pulse'></span>
+                        </>
+                      ) : (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {message.answer}
+                        </ReactMarkdown>
+                      )}
                     </div>
 
                     {/* Collapsible Sources */}

@@ -75,3 +75,31 @@ body {
 .fade-in-soft {
   animation: fadeInSoft 180ms ease-out;
 }
+
+/* Верхняя изумрудная полоса: всегда на всю ширину, с мягким шиммером */
+@keyframes loadingBar {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.loading-bar-emerald {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    #059669 0%,
+    #10b981 20%,
+    #10b981 80%,
+    #059669 100%
+  );
+  background-size: 200% 100%;
+  animation: loadingBar 1.2s linear infinite;
+  will-change: background-position;
+}
