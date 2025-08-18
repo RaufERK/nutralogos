@@ -17,6 +17,7 @@ export default function SettingsPage() {
     text: string
   } | null>(null)
   const [formData, setFormData] = useState<SettingsFormData>({})
+  const [resetting, setResetting] = useState(false)
 
   useEffect(() => {
     loadSettings()
@@ -97,6 +98,30 @@ export default function SettingsPage() {
 
   const handleReset = async (setting: SystemSetting) => {
     await handleSave(setting.parameter_name, setting.default_value)
+  }
+
+  const handleResetAll = async () => {
+    setResetting(true)
+    setMessage(null)
+    try {
+      const res = await fetch('/api/admin/settings/reset', { method: 'POST' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || data?.success === false) {
+        throw new Error(data?.error || 'Failed to reset settings')
+      }
+      setMessage({
+        type: 'success',
+        text: 'Все настройки сброшены к значениям по умолчанию',
+      })
+      await loadSettings()
+    } catch (e) {
+      setMessage({
+        type: 'error',
+        text: e instanceof Error ? e.message : 'Failed to reset settings',
+      })
+    } finally {
+      setResetting(false)
+    }
   }
 
   const renderSettingInput = (setting: SystemSetting) => {
@@ -255,6 +280,22 @@ export default function SettingsPage() {
     }
   }
 
+  const categoryHelp: Record<string, string> = {
+    AI_Model_and_Response_Generation:
+      'Настройки основной модели чата и параметров генерации ответов.',
+    RAG_Embedding_and_Chunking:
+      'Параметры разбиения текста и модели эмбеддингов для индексации.',
+    Retrieval_Settings:
+      'Параметры извлечения контекста из векторной БД и пороги релевантности.',
+    System_and_Limits: 'Системные лимиты и производственные параметры.',
+    Chat_Context_Settings:
+      'Поведение контекста в чате и приветственные сообщения.',
+    Enhanced_Metadata:
+      'Автоматическое обогащение документов метаданными перед чанкингом.',
+    Deduplication:
+      'Стратегии предотвращения дубликатов по содержимому (контент-хеш).',
+  }
+
   const getCategoryBgColor = (category: string) => {
     // Закрепляем цвета за конкретными категориями для логичности
     const colorMap: Record<string, string> = {
@@ -284,6 +325,15 @@ export default function SettingsPage() {
       <div>
         <h1 className='text-2xl font-bold text-white'>System Settings</h1>
         <p className='text-gray-400'>Configure RAG system parameters</p>
+        <div className='mt-4'>
+          <button
+            onClick={handleResetAll}
+            disabled={resetting}
+            className='px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:bg-red-700/60 border border-red-500'
+          >
+            {resetting ? 'Сброс настроек…' : 'Сбросить все настройки'}
+          </button>
+        </div>
       </div>
 
       {/* Message */}
@@ -305,11 +355,23 @@ export default function SettingsPage() {
           key={category}
           className={`${getCategoryBgColor(category)} rounded-lg shadow p-6`}
         >
-          <div className='flex items-center mb-6'>
-            <span className='text-2xl mr-3'>{getCategoryIcon(category)}</span>
-            <h2 className='text-xl font-semibold text-white'>
-              {getCategoryTitle(category)}
-            </h2>
+          <div className='flex items-start justify-between mb-6'>
+            <div className='flex items-center'>
+              <span className='text-2xl mr-3'>{getCategoryIcon(category)}</span>
+              <h2 className='text-xl font-semibold text-white'>
+                {getCategoryTitle(category)}
+              </h2>
+            </div>
+            {categoryHelp[category] && (
+              <div className='relative group'>
+                <span className='inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/20 text-white cursor-default'>
+                  ?
+                </span>
+                <div className='absolute right-0 mt-2 w-72 p-3 rounded bg-black/90 text-white text-xs border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
+                  {categoryHelp[category]}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className='space-y-6'>

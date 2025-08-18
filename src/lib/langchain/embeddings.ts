@@ -113,8 +113,15 @@ export async function getEmbeddingVectors(
       `🔗 [EMBEDDINGS] =============== STARTING EMBEDDING PROCESS ===============`
     )
 
-    // Process in smaller batches to prevent overload
-    const batchSize = 5 // Very small batch size for stability
+    // Use batch size from settings
+    let batchSize = 5
+    try {
+      const configured = await SettingsService.getSettingValue<number>(
+        'embedding_batch_size',
+        5
+      )
+      batchSize = Math.max(1, Math.floor(configured))
+    } catch {}
     const results: number[][] = []
 
     for (let i = 0; i < texts.length; i += batchSize) {
