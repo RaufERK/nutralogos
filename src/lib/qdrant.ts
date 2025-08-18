@@ -158,10 +158,8 @@ export async function upsertMultiVectorPoints(
     }
     if (anyErr && anyErr.response && anyErr.response.data) {
       try {
-        console.error(
-          '❌ [QDRANT] Error response data:',
-          JSON.stringify(anyErr.response.data, null, 2)
-        )
+        // Avoid logging huge payloads or secrets
+        console.error('❌ [QDRANT] Error response data (truncated)')
       } catch {
         console.error(
           '❌ [QDRANT] Error response data (raw):',
@@ -213,10 +211,9 @@ export async function searchMultiVector(
         search: (
           name: string,
           body: {
-            vector: number[]
+            vector: { name: 'content'; vector: number[] }
             limit: number
             with_payload: boolean
-            using: 'content' | 'meta'
           }
         ) => Promise<
           Array<{
@@ -227,20 +224,18 @@ export async function searchMultiVector(
         >
       }
     ).search(QDRANT_COLLECTION_NAME, {
-      vector: queryContent,
+      vector: { name: 'content', vector: queryContent },
       limit,
       with_payload: true,
-      using: 'content',
     }),
     (
       qdrantClient as unknown as {
         search: (
           name: string,
           body: {
-            vector: number[]
+            vector: { name: 'meta'; vector: number[] }
             limit: number
             with_payload: boolean
-            using: 'content' | 'meta'
           }
         ) => Promise<
           Array<{
@@ -251,10 +246,9 @@ export async function searchMultiVector(
         >
       }
     ).search(QDRANT_COLLECTION_NAME, {
-      vector: queryMeta,
+      vector: { name: 'meta', vector: queryMeta },
       limit,
       with_payload: true,
-      using: 'meta',
     }),
   ])
 

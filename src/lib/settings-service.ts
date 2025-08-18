@@ -298,7 +298,10 @@ export class SettingsService {
       // Basic type validation
       switch (setting.parameter_type) {
         case 'number': {
-          if (!(typeof convertedValue === 'number') || Number.isNaN(convertedValue)) {
+          if (
+            !(typeof convertedValue === 'number') ||
+            Number.isNaN(convertedValue)
+          ) {
             return false
           }
           break
@@ -379,7 +382,8 @@ export class RAGSettings {
    * Get content settings
    */
   static async isSpiritualPromptEnabled(): Promise<boolean> {
-    return SettingsService.getSettingValue('spiritual_prompt_enabled', true)
+    // Deprecated: always false
+    return false
   }
 
   static async getContextMaxLength(): Promise<number> {

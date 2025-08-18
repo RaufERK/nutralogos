@@ -29,10 +29,25 @@ export async function POST() {
             (it as { parameter_name?: unknown }).parameter_name || ''
           )
           if (!parameter_name) continue
-          const default_value = String(
+          let default_value = String(
             (it as { default_value?: unknown }).default_value ?? ''
           )
-          // We always reset parameter_value to default_value from file
+          // Fill system_prompt from defaults/prompts/nutritial.txt if missing
+          if (parameter_name === 'system_prompt' && !default_value) {
+            try {
+              default_value = await readFile(
+                join(
+                  process.cwd(),
+                  'src',
+                  'defaults',
+                  'prompts',
+                  'nutritial.txt'
+                ),
+                'utf8'
+              )
+            } catch {}
+          }
+          // We always reset parameter_value to default_value from file or prompt
           items.push({
             parameter_name,
             default_value,

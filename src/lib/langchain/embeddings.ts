@@ -54,9 +54,7 @@ export async function getEmbeddingVector(text: string): Promise<number[]> {
       await new Promise((resolve) => setTimeout(resolve, delay))
     }
 
-    console.log(
-      `🔗 [EMBEDDINGS] Getting embedding for text (${text.length} chars)`
-    )
+    console.log('🔗 [EMBEDDINGS] Getting embedding for text')
 
     const response = await openai.embeddings.create({
       model: EMBEDDING_MODEL,

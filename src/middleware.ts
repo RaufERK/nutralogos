@@ -26,9 +26,23 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Защита сервисных/админских API
+  const isProtectedApi =
+    pathname.startsWith('/api/admin') ||
+    pathname.startsWith('/api/vector-db') ||
+    pathname === '/api/sync' ||
+    pathname.startsWith('/api/settings')
+
+  if (isProtectedApi) {
+    const userRole = (session?.user as { role?: string } | undefined)?.role
+    if (!session?.user || userRole !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+  }
+
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/api/:path*'],
 }

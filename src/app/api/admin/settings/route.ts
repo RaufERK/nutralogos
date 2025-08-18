@@ -26,6 +26,7 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
+    // Basic input validation
     console.log('📝 [ADMIN SETTINGS] Updating setting')
 
     const { parameterName, value, reason } = await request.json()
@@ -33,6 +34,13 @@ export async function PUT(request: NextRequest) {
     if (!parameterName || value === undefined) {
       return NextResponse.json(
         { error: 'Parameter name and value are required' },
+        { status: 400 }
+      )
+    }
+
+    if (typeof parameterName !== 'string' || parameterName.length > 128) {
+      return NextResponse.json(
+        { error: 'Invalid parameter name' },
         { status: 400 }
       )
     }
@@ -85,6 +93,10 @@ export async function PUT(request: NextRequest) {
           )
         }
         break
+      default:
+        if (typeof value !== 'string') {
+          validatedValue = String(value)
+        }
     }
 
     // Update the setting

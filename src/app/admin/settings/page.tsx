@@ -18,9 +18,13 @@ export default function SettingsPage() {
   } | null>(null)
   const [formData, setFormData] = useState<SettingsFormData>({})
   const [resetting, setResetting] = useState(false)
+  const [promptFiles, setPromptFiles] = useState<
+    Array<{ name: string; filename: string; content: string }>
+  >([])
 
   useEffect(() => {
     loadSettings()
+    loadPromptFiles()
   }, [])
 
   const loadSettings = async () => {
@@ -94,6 +98,16 @@ export default function SettingsPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const loadPromptFiles = async () => {
+    try {
+      const res = await fetch('/api/settings/prompts/list')
+      const data = await res.json()
+      if (res.ok && data?.success) {
+        setPromptFiles(data.prompts || [])
+      }
+    } catch {}
   }
 
   const handleReset = async (setting: SystemSetting) => {
@@ -205,6 +219,41 @@ export default function SettingsPage() {
         )
 
       case 'textarea':
+        if (setting.parameter_name === 'system_prompt') {
+          return (
+            <div className='space-y-2'>
+              <div className='flex items-center space-x-2'>
+                <select
+                  className='px-2 py-1 bg-gray-600 text-white border border-gray-500 rounded'
+                  onChange={(e) => {
+                    const sel = promptFiles.find(
+                      (p) => p.filename === e.target.value
+                    )
+                    if (sel) {
+                      handleInputChange(setting.parameter_name, sel.content)
+                    }
+                  }}
+                >
+                  <option value=''>Выбрать промпт из файла…</option>
+                  {promptFiles.map((p) => (
+                    <option key={p.filename} value={p.filename}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <textarea
+                value={value}
+                onChange={(e) =>
+                  handleInputChange(setting.parameter_name, e.target.value)
+                }
+                rows={8}
+                className='w-full px-3 py-2 bg-gray-600 text-white border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                disabled={setting.is_readonly}
+              />
+            </div>
+          )
+        }
         return (
           <textarea
             value={value}
