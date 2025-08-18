@@ -571,8 +571,8 @@
     {
       "id": 484,
       "parameter_name": "max_file_size_mb",
-      "parameter_value": "75",
-      "default_value": "75",
+      "parameter_value": "150",
+      "default_value": "150",
       "parameter_type": "number",
       "display_name": "Max File Size (MB)",
       "description": "Максимально допустимый размер загружаемого файла в мегабайтах",
