@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { QdrantClient } from '@qdrant/js-client-rest'
 import { getDatabase } from '@/lib/database'
+import { SettingsService } from '@/lib/settings-service'
 
 export async function POST() {
   try {
@@ -23,8 +24,22 @@ export async function POST() {
       // ignore if not exists
     }
 
+    // Determine vector size from embedding model
+    let vectorSize = 3072
+    try {
+      const embeddingModel = await SettingsService.getSettingValue<string>(
+        'embedding_model',
+        process.env.OPENAI_EMBEDDING_MODEL ||
+          process.env.NEXT_PUBLIC_OPENAI_EMBEDDING_MODEL ||
+          'text-embedding-3-large'
+      )
+      vectorSize = embeddingModel.includes('text-embedding-3-small')
+        ? 1536
+        : 3072
+    } catch {}
+
     await client.createCollection(collectionName, {
-      vectors: { size: 1536, distance: 'Cosine' },
+      vectors: { size: vectorSize, distance: 'Cosine' },
     })
 
     const db = await getDatabase()
@@ -36,7 +51,11 @@ export async function POST() {
           embedded_at = NULL,
           processed_at = NULL,
           processing_time_ms = NULL,
-          chunks_created = 0
+          chunks_created = 0,
+          txt_hash = NULL,
+          txt_path = NULL,
+          metadata_json = NULL,
+          error_message = NULL
       WHERE processing_status IN ('embedded','duplicate_content','failed')
     `
       )

@@ -27,9 +27,14 @@ function getClient(): QdrantClient {
 export async function createCollection(): Promise<void> {
   try {
     const qdrantClient = getClient()
+    const embeddingModel =
+      process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-large'
+    const vectorSize = embeddingModel.includes('text-embedding-3-small')
+      ? 1536
+      : 3072
     await qdrantClient.createCollection(QDRANT_COLLECTION_NAME, {
       vectors: {
-        size: 1536, // OpenAI ada-002 embedding size
+        size: vectorSize,
         distance: 'Cosine',
       },
     })

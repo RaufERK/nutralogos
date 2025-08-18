@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { LibraryStats } from './LibraryStats'
+import { SyncButton } from './SyncButton'
 import UploadPage from '../components/UploadWidget'
 
 type SystemStats = {
@@ -22,6 +23,7 @@ type SystemStats = {
 export default function AdminDashboardClient() {
   const [stats, setStats] = useState<SystemStats | null>(null)
   const [clearSignal, setClearSignal] = useState(0)
+  const [syncInProgress, setSyncInProgress] = useState(false)
 
   const fetchStats = useCallback(async () => {
     try {
@@ -36,6 +38,14 @@ export default function AdminDashboardClient() {
   useEffect(() => {
     fetchStats()
   }, [fetchStats])
+
+  useEffect(() => {
+    if (!syncInProgress) return
+    const id = setInterval(() => {
+      fetchStats()
+    }, 3000)
+    return () => clearInterval(id)
+  }, [syncInProgress, fetchStats])
 
   return (
     <div className='space-y-6'>
@@ -70,21 +80,44 @@ export default function AdminDashboardClient() {
       </div>
 
       {/* Если нужна синхронизация */}
-      {stats?.syncNeeded && (
+      {
         <div className='bg-gradient-to-r from-orange-500 to-red-500 rounded-lg shadow p-4 md:p-6 text-white'>
-          <button
-            onClick={async () => {
-              const res = await fetch('/api/sync', { method: 'POST' })
-              await res.json().catch(() => ({}))
-              fetchStats()
-              setClearSignal((v) => v + 1)
-            }}
-            className='w-full px-6 py-3 rounded-lg font-semibold text-white transition-all duration-200 bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30'
-          >
-            {`🔄 Синхронизировать (${stats.library.uploaded} файлов)`}
-          </button>
+          <div className='flex items-center justify-between'>
+            <div className='text-sm'>
+              {syncInProgress
+                ? 'Идёт синхронизация…'
+                : 'Готово к синхронизации'}
+            </div>
+            <div className='text-sm'>
+              Ожидают: {stats?.library.uploaded ?? 0}
+            </div>
+          </div>
+          <div className='mt-3'>
+            <SyncButton
+              pendingCount={stats?.library.uploaded ?? 0}
+              onStart={() => setSyncInProgress(true)}
+              onSynced={() => {
+                setSyncInProgress(false)
+                fetchStats()
+                setClearSignal((v) => v + 1)
+              }}
+            />
+          </div>
+          {syncInProgress && (
+            <div className='mt-3'>
+              <div className='w-full bg-white/20 rounded-full h-2'>
+                <div
+                  className='bg-white h-2 rounded-full transition-all duration-500'
+                  style={{ width: `${stats?.processingProgress ?? 0}%` }}
+                />
+              </div>
+              <div className='mt-1 text-xs opacity-90'>
+                Прогресс: {stats?.processingProgress ?? 0}%
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      }
 
       {/* Статистика */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>

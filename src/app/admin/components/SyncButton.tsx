@@ -5,9 +5,14 @@ import { useState } from 'react'
 interface SyncButtonProps {
   pendingCount: number
   onSynced?: () => void
+  onStart?: () => void
 }
 
-export function SyncButton({ pendingCount, onSynced }: SyncButtonProps) {
+export function SyncButton({
+  pendingCount,
+  onSynced,
+  onStart,
+}: SyncButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<{
     success: boolean
@@ -19,6 +24,7 @@ export function SyncButton({ pendingCount, onSynced }: SyncButtonProps) {
   } | null>(null)
 
   const handleSync = async () => {
+    onStart?.()
     setIsLoading(true)
     setResult(null)
 

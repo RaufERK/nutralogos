@@ -11,6 +11,8 @@ import { getDatabase } from '@/lib/database'
 import { addDocuments } from '@/lib/langchain/vectorstore'
 import { Document } from '@langchain/core/documents'
 import { ChunkingService } from '@/lib/chunking-service'
+import { SettingsService, RAGSettings } from '@/lib/settings-service'
+import { analyzeTextWithLLM } from '@/lib/metadata-analyzer'
 
 /**
  * STAGE 2: Синхронизация с векторной БД
@@ -221,7 +223,56 @@ async function processSingleFile(file: PendingFile) {
     }
 
     // 6. Содержимое уникально - продолжаем обработку
-    console.log(`✨ [SYNC] Unique content, creating embedding...`)
+    console.log(
+      `✨ [SYNC] Unique content, enriching metadata and creating embedding...`
+    )
+
+    // 6.1 Обогащение метаданных (синхронно, по настройкам)
+    let llmMetadata: Record<string, unknown> | undefined
+    try {
+      const enhancedEnabled = await SettingsService.getSettingValue<boolean>(
+        'enhanced_metadata_enabled',
+        true
+      )
+      if (enhancedEnabled) {
+        const strategy = await SettingsService.getSettingValue<string>(
+          'metadata_strategy',
+          'auto'
+        )
+        const maxTokens = await SettingsService.getSettingValue<number>(
+          'metadata_max_context_tokens',
+          120000
+        )
+        const approxTokenLimit = Math.max(8000, maxTokens)
+        const approxTokens = Math.ceil(text.length / 4)
+
+        let sampleText = text
+        if (
+          strategy === 'sampled' ||
+          (strategy === 'auto' && approxTokens > approxTokenLimit)
+        ) {
+          const sliceTokens = Math.floor(approxTokenLimit / 2)
+          const sliceChars = sliceTokens * 4
+          const head = text.slice(0, sliceChars)
+          const tail = text.slice(-sliceChars)
+          sampleText = `${head}\n\n[...]\n\n${tail}`
+        } else if (strategy === 'hierarchical') {
+          const sliceTokens = Math.floor(approxTokenLimit / 3)
+          const sliceChars = sliceTokens * 4
+          const head = text.slice(0, sliceChars)
+          const midStart = Math.max(0, Math.floor(text.length / 2) - sliceChars)
+          const mid = text.slice(midStart, midStart + sliceChars)
+          const tail = text.slice(-sliceChars)
+          sampleText = `${head}\n\n[...]\n\n${mid}\n\n[...]\n\n${tail}`
+        }
+
+        const spiritual = await RAGSettings.isSpiritualPromptEnabled()
+        const domain = spiritual ? 'spiritual' : 'nutrition'
+        llmMetadata = await analyzeTextWithLLM(sampleText, domain)
+      }
+    } catch (e) {
+      console.warn('⚠️ [SYNC] LLM metadata enrichment failed, continuing:', e)
+    }
 
     // 7. Генерируем путь для txt файла (без метаданных)
     const { txtPath, folder } = generateTxtFilePaths(txtHash)
@@ -258,6 +309,8 @@ async function processSingleFile(file: PendingFile) {
             tokenCount: chunk.tokenCount,
             uploadedAt: file.uploaded_at,
             processedAt: new Date().toISOString(),
+            // Обогащенные метаданные на уровне файла
+            llmMetadata,
           },
         })
     )
@@ -283,6 +336,7 @@ async function processSingleFile(file: PendingFile) {
       language: 'ru',
       processing_time: processingTime,
       chunks_created: chunks.length,
+      llm_metadata: llmMetadata,
     }
 
     console.log(`📋 [SYNC] Metadata prepared for DB storage (no .meta.json)`)

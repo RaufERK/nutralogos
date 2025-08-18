@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { SettingsService } from '@/lib/settings-service'
 
 // Simple in-memory cache for embeddings
 const embeddingCache = new Map<string, number[]>()
@@ -14,7 +15,20 @@ const openai = new OpenAI({
   timeout: 30000, // 30 second timeout
 })
 
-const EMBEDDING_MODEL = process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small'
+let EMBEDDING_MODEL =
+  process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-large'
+
+async function syncEmbeddingModelFromSettings(): Promise<void> {
+  try {
+    const model = await SettingsService.getSettingValue<string>(
+      'embedding_model',
+      EMBEDDING_MODEL
+    )
+    if (model && model !== EMBEDDING_MODEL) {
+      EMBEDDING_MODEL = model
+    }
+  } catch {}
+}
 
 /**
  * Direct OpenAI API embedding function with caching and rate limiting
@@ -23,6 +37,7 @@ const EMBEDDING_MODEL = process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-
  */
 export async function getEmbeddingVector(text: string): Promise<number[]> {
   try {
+    await syncEmbeddingModelFromSettings()
     // Check cache first
     const cacheKey = text.substring(0, 100) // Use first 100 chars as key
     if (embeddingCache.has(cacheKey)) {
@@ -91,6 +106,7 @@ export async function getEmbeddingVectors(
   texts: string[]
 ): Promise<number[][]> {
   try {
+    await syncEmbeddingModelFromSettings()
     const startTime = Date.now()
     console.log(`🔗 [EMBEDDINGS] Getting embeddings for ${texts.length} texts`)
     console.log(

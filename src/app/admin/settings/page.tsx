@@ -225,6 +225,10 @@ export default function SettingsPage() {
         return '⚙️'
       case 'Chat_Context_Settings':
         return '💬'
+      case 'Enhanced_Metadata':
+        return '🏷️'
+      case 'Deduplication':
+        return '♻️'
       default:
         return '💻'
     }
@@ -242,6 +246,10 @@ export default function SettingsPage() {
         return 'Система и лимиты'
       case 'Chat_Context_Settings':
         return 'Настройки контекста чата'
+      case 'Enhanced_Metadata':
+        return 'Улучшенные метаданные'
+      case 'Deduplication':
+        return 'Дедупликация'
       default:
         return category.charAt(0).toUpperCase() + category.slice(1)
     }
@@ -255,6 +263,8 @@ export default function SettingsPage() {
       Retrieval_Settings: 'bg-teal-800/90', // Бирюзовый для поиска
       System_and_Limits: 'bg-emerald-800/90', // Изумрудный для системы
       Chat_Context_Settings: 'bg-indigo-900/90', // Индиго для чата
+      Enhanced_Metadata: 'bg-amber-900/90', // Янтарный для метаданных
+      Deduplication: 'bg-lime-900/90', // Лаймовый для дедупликации
     }
 
     return colorMap[category] || 'bg-gray-900/90'

@@ -31,13 +31,25 @@ export function getVectorStore(): QdrantVectorStore {
       },
     }
 
+    // Determine vector dimension based on embedding model
+    const embeddingModel =
+      process.env.OPENAI_EMBEDDING_MODEL ||
+      process.env.NEXT_PUBLIC_OPENAI_EMBEDDING_MODEL ||
+      'text-embedding-3-large'
+    const vectorSize = (() => {
+      if (embeddingModel.includes('text-embedding-3-large')) return 3072
+      if (embeddingModel.includes('text-embedding-3-small')) return 1536
+      if (embeddingModel.includes('ada-002')) return 1536
+      return 3072
+    })()
+
     vectorStoreInstance = new QdrantVectorStore(customEmbeddings, {
       url: process.env.QDRANT_URL,
       apiKey: process.env.QDRANT_API_KEY,
       collectionName: process.env.QDRANT_COLLECTION_NAME || 'nutralogos',
       collectionConfig: {
         vectors: {
-          size: 1536, // OpenAI ada-002 embedding dimension
+          size: vectorSize,
           distance: 'Cosine', // Cosine similarity for semantic search
         },
       },
