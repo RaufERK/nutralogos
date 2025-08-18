@@ -1,5 +1,7 @@
 import { QdrantVectorStore } from '@langchain/qdrant'
-import { getEmbeddingVectors } from './embeddings'
+import { getEmbeddingVector, getEmbeddingVectors } from './embeddings'
+import { searchMultiVector } from '@/lib/qdrant'
+import { SettingsService } from '@/lib/settings-service'
 import { randomUUID } from 'crypto'
 
 /**
@@ -154,15 +156,58 @@ export async function createRetriever(
     scoreThreshold?: number
   } = {}
 ) {
-  const vectorStore = getVectorStore()
+  const multivectorEnabled = await SettingsService.getSettingValue<boolean>(
+    'multivector_enabled',
+    false
+  )
 
   // Use database settings if not provided
   const k = options.k ?? (await RAGSettings.getRetrievalK())
-  // const scoreThreshold = options.scoreThreshold ?? (await RAGSettings.getScoreThreshold())
+  const scoreThreshold =
+    options.scoreThreshold ?? (await RAGSettings.getScoreThreshold())
 
-  return vectorStore.asRetriever({
-    k,
-    // scoreThreshold not supported in this retriever type; we filter in app logic
-    searchType: 'similarity',
-  })
+  if (!multivectorEnabled) {
+    const vectorStore = getVectorStore()
+    return vectorStore.asRetriever({
+      k,
+      searchType: 'similarity',
+    })
+  }
+
+  // Custom retriever using multi-vector search
+  return {
+    async getRelevantDocuments(query: string) {
+      const [contentVec, metaVec] = await Promise.all([
+        getEmbeddingVector(query),
+        getEmbeddingVector(query),
+      ])
+      const contentWeight = await SettingsService.getSettingValue<number>(
+        'multivector_content_weight',
+        0.8
+      )
+      const metaWeight = await SettingsService.getSettingValue<number>(
+        'multivector_meta_weight',
+        0.2
+      )
+      const docs = await searchMultiVector(
+        contentVec,
+        metaVec,
+        k,
+        contentWeight,
+        metaWeight
+      )
+      // Map to LangChain Document-like objects
+      const filtered = docs.map((d) => ({
+        pageContent: d.content,
+        metadata: d.metadata as Record<string, unknown>,
+        score: (d as unknown as { score?: number }).score ?? undefined,
+      }))
+      // Apply threshold if present
+      return filtered.filter((d) =>
+        typeof d.score === 'number'
+          ? (d.score as number) >= scoreThreshold
+          : true
+      )
+    },
+  }
 }

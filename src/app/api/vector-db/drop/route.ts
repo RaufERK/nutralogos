@@ -38,9 +38,36 @@ export async function POST() {
         : 3072
     } catch {}
 
-    await client.createCollection(collectionName, {
-      vectors: { size: vectorSize, distance: 'Cosine' },
-    })
+    const multivectorEnabled = await SettingsService.getSettingValue<boolean>(
+      'multivector_enabled',
+      false
+    )
+    if (multivectorEnabled) {
+      await (
+        client as unknown as {
+          createCollection: (
+            name: string,
+            cfg: {
+              vectors:
+                | { size: number; distance: 'Cosine' }
+                | {
+                    content: { size: number; distance: 'Cosine' }
+                    meta: { size: number; distance: 'Cosine' }
+                  }
+            }
+          ) => Promise<void>
+        }
+      ).createCollection(collectionName, {
+        vectors: {
+          content: { size: vectorSize, distance: 'Cosine' },
+          meta: { size: vectorSize, distance: 'Cosine' },
+        },
+      })
+    } else {
+      await client.createCollection(collectionName, {
+        vectors: { size: vectorSize, distance: 'Cosine' },
+      })
+    }
 
     const db = await getDatabase()
     const result = db

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { QdrantClient } from '@qdrant/js-client-rest'
 import { getDatabase } from '@/lib/database'
+import { SettingsService } from '@/lib/settings-service'
 
 export async function GET() {
   try {
@@ -45,8 +46,12 @@ export async function GET() {
     const client = new QdrantClient({ url, apiKey })
 
     let exists = false
-    let vectorsSize: number = 1536
-    let distance: string = 'Cosine'
+    let vectorsSize: number | null = null
+    let distance: string | null = null
+    let namedVectors: Record<
+      string,
+      { size?: number; distance?: string }
+    > | null = null
     let pointsCount: number = 0
 
     try {
@@ -56,25 +61,34 @@ export async function GET() {
         info as unknown as {
           result?: {
             config?: {
-              params?: { vectors?: { size?: number; distance?: string } }
-              vectors?: { size?: number; distance?: string }
+              params?: { vectors?: unknown }
+              vectors?: unknown
             }
           }
         }
       ).result?.config
-      const vectors =
-        (
-          cfg?.params as unknown as
-            | { vectors?: { size?: number; distance?: string } }
-            | undefined
-        )?.vectors ||
-        (
-          cfg as unknown as
-            | { vectors?: { size?: number; distance?: string } }
-            | undefined
-        )?.vectors
-      if (vectors?.size) vectorsSize = vectors.size
-      if (vectors?.distance) distance = vectors.distance
+      const vectorsRaw =
+        (cfg?.params as unknown as { vectors?: unknown } | undefined)
+          ?.vectors ??
+        (cfg as unknown as { vectors?: unknown } | undefined)?.vectors
+
+      if (vectorsRaw && typeof vectorsRaw === 'object') {
+        const v = vectorsRaw as Record<string, unknown> & {
+          size?: number
+          distance?: string
+        }
+        if (typeof v.size === 'number') {
+          vectorsSize = v.size
+          distance = typeof v.distance === 'string' ? v.distance : 'Cosine'
+        } else {
+          namedVectors = Object.fromEntries(
+            Object.entries(v).map(([key, val]) => {
+              const entry = (val || {}) as { size?: number; distance?: string }
+              return [key, { size: entry.size, distance: entry.distance }]
+            })
+          )
+        }
+      }
 
       try {
         const countRes = (await client.count(collectionName, {
@@ -103,6 +117,38 @@ export async function GET() {
       exists = false
     }
 
+    const multivectorEnabled = await SettingsService.getSettingValue<boolean>(
+      'multivector_enabled',
+      false
+    )
+    const contentWeight = await SettingsService.getSettingValue<number>(
+      'multivector_content_weight',
+      0.8
+    )
+    const metaWeight = await SettingsService.getSettingValue<number>(
+      'multivector_meta_weight',
+      0.2
+    )
+
+    // Derive vector sizes from embedding model if named vectors are enabled
+    if (multivectorEnabled) {
+      try {
+        const embeddingModel = await SettingsService.getSettingValue<string>(
+          'embedding_model',
+          process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-large'
+        )
+        const dim = embeddingModel.includes('text-embedding-3-small')
+          ? 1536
+          : 3072
+        namedVectors = {
+          content: { size: dim, distance: 'Cosine' },
+          meta: { size: dim, distance: 'Cosine' },
+        }
+        vectorsSize = null
+        distance = null
+      } catch {}
+    }
+
     return NextResponse.json({
       success: true,
       qdrant: {
@@ -111,7 +157,14 @@ export async function GET() {
         exists,
         vectorsSize,
         distance,
+        namedVectors,
+        isNamedVectors: !!namedVectors,
         pointsCount,
+      },
+      settings: {
+        multivectorEnabled,
+        multivectorContentWeight: contentWeight,
+        multivectorMetaWeight: metaWeight,
       },
       sqlite,
     })

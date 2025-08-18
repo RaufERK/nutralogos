@@ -254,6 +254,8 @@ export default function SettingsPage() {
         return '🏷️'
       case 'Deduplication':
         return '♻️'
+      case 'Vector_Search':
+        return '🧭'
       default:
         return '💻'
     }
@@ -275,6 +277,8 @@ export default function SettingsPage() {
         return 'Улучшенные метаданные'
       case 'Deduplication':
         return 'Дедупликация'
+      case 'Vector_Search':
+        return 'Векторный поиск'
       default:
         return category.charAt(0).toUpperCase() + category.slice(1)
     }
@@ -294,6 +298,8 @@ export default function SettingsPage() {
       'Автоматическое обогащение документов метаданными перед чанкингом.',
     Deduplication:
       'Стратегии предотвращения дубликатов по содержимому (контент-хеш).',
+    Vector_Search:
+      'Multi-vector: два вектора на чанк (content + meta) и взвешенное объединение при поиске.',
   }
 
   const getCategoryBgColor = (category: string) => {
@@ -306,6 +312,7 @@ export default function SettingsPage() {
       Chat_Context_Settings: 'bg-indigo-900/90', // Индиго для чата
       Enhanced_Metadata: 'bg-amber-900/90', // Янтарный для метаданных
       Deduplication: 'bg-lime-900/90', // Лаймовый для дедупликации
+      Vector_Search: 'bg-cyan-900/90', // Циан для поиска
     }
 
     return colorMap[category] || 'bg-gray-900/90'

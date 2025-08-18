@@ -9,9 +9,13 @@ import {
 } from '@/lib/file-hash-utils'
 import { getDatabase } from '@/lib/database'
 import { addDocuments } from '@/lib/langchain/vectorstore'
+import { SettingsService } from '@/lib/settings-service'
+import { upsertMultiVectorPoints } from '@/lib/qdrant'
+import { getEmbeddingVectors } from '@/lib/langchain/embeddings'
 import { Document } from '@langchain/core/documents'
+import { randomUUID } from 'crypto'
 import { ChunkingService } from '@/lib/chunking-service'
-import { SettingsService, RAGSettings } from '@/lib/settings-service'
+import { RAGSettings } from '@/lib/settings-service'
 import { analyzeTextWithLLM } from '@/lib/metadata-analyzer'
 
 /**
@@ -315,8 +319,58 @@ async function processSingleFile(file: PendingFile) {
         })
     )
 
-    // 11. Добавляем в векторную БД
-    await addDocuments(documents)
+    // 11. Добавляем в векторную БД (single or multi-vector)
+    const multivectorEnabled = await SettingsService.getSettingValue<boolean>(
+      'multivector_enabled',
+      false
+    )
+    if (multivectorEnabled) {
+      const ids = documents.map(() => randomUUID())
+      const contentTexts = documents.map((d) => d.pageContent)
+      const metaTexts = documents.map((d) => {
+        const meta = d.metadata as Record<string, unknown>
+        const llm = (meta?.llmMetadata as Record<string, unknown>) || {}
+        const title = String(
+          (llm as { title?: unknown })?.title ||
+            (meta as { title?: unknown })?.title ||
+            ''
+        )
+        const tagsArr = (llm as { tags?: unknown })?.tags
+        const tags = Array.isArray(tagsArr)
+          ? (tagsArr as unknown[]).map(String).join(' ')
+          : ''
+        const summary = String(
+          (llm as { summaryShort?: unknown; summary?: unknown })
+            ?.summaryShort ||
+            (llm as { summary?: unknown })?.summary ||
+            ''
+        )
+        return [title, tags, summary]
+          .filter((s) => s && s.length > 0)
+          .join(' \n ')
+      })
+      const [contentVecs, metaVecs] = await Promise.all([
+        getEmbeddingVectors(contentTexts),
+        getEmbeddingVectors(metaTexts),
+      ])
+      console.log(
+        `🧮 [SYNC] Multi-vector embeddings ready (content dim=${contentVecs[0]?.length}, meta dim=${metaVecs[0]?.length})`
+      )
+      console.log('🧪 [SYNC] Meta text sample:', metaTexts[0]?.slice(0, 120))
+      await upsertMultiVectorPoints(
+        ids.map((id, i) => ({
+          id,
+          contentVector: contentVecs[i],
+          metaVector: metaVecs[i],
+          payload: {
+            content: documents[i].pageContent,
+            metadata: documents[i].metadata as Record<string, unknown>,
+          },
+        }))
+      )
+    } else {
+      await addDocuments(documents)
+    }
 
     const processingTime = Date.now() - startTime
     console.log(
