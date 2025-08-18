@@ -18,6 +18,7 @@ export default function SettingsPage() {
   } | null>(null)
   const [formData, setFormData] = useState<SettingsFormData>({})
   const [resetting, setResetting] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const [promptFiles, setPromptFiles] = useState<
     Array<{ name: string; filename: string; content: string }>
   >([])
@@ -388,6 +389,38 @@ export default function SettingsPage() {
             className='px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:bg-red-700/60 border border-red-500'
           >
             {resetting ? 'Сброс настроек…' : 'Сбросить все настройки'}
+          </button>
+          <button
+            onClick={async () => {
+              setSyncing(true)
+              setMessage(null)
+              try {
+                const res = await fetch('/api/admin/settings/sync', {
+                  method: 'POST',
+                })
+                const data = await res.json().catch(() => ({}))
+                if (!res.ok || data?.success === false) {
+                  throw new Error(data?.error || 'Failed to sync settings')
+                }
+                setMessage({
+                  type: 'success',
+                  text: 'Настройки синхронизированы с defaults',
+                })
+                await loadSettings()
+              } catch (e) {
+                setMessage({
+                  type: 'error',
+                  text:
+                    e instanceof Error ? e.message : 'Failed to sync settings',
+                })
+              } finally {
+                setSyncing(false)
+              }
+            }}
+            disabled={syncing}
+            className='ml-3 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-700/60 border border-blue-500'
+          >
+            {syncing ? 'Синхронизация…' : 'Синхронизировать с defaults'}
           </button>
         </div>
       </div>
