@@ -475,62 +475,6 @@
       "updated_by": "admin-api"
     }
   ],
-  "Deduplication": [
-    {
-      "id": 620,
-      "parameter_name": "dedup_mode",
-      "parameter_value": "content-hash",
-      "default_value": "content-hash",
-      "parameter_type": "string",
-      "display_name": "Дедупликация",
-      "description": "Способ определения дубликатов",
-      "help_text": "content-hash | none",
-      "ui_component": "select",
-      "ui_options": "[\"content-hash\",\"none\"]",
-      "ui_order": 1,
-      "requires_restart": false,
-      "is_sensitive": false,
-      "is_readonly": false,
-      "updated_at": "2025-08-18 00:00:00",
-      "updated_by": "admin-api"
-    },
-    {
-      "id": 621,
-      "parameter_name": "dedup_hash_algorithm",
-      "parameter_value": "sha256",
-      "default_value": "sha256",
-      "parameter_type": "string",
-      "display_name": "Алгоритм хеша",
-      "description": "Для contentHash нормализованного текста",
-      "help_text": "sha256",
-      "ui_component": "select",
-      "ui_options": "[\"sha256\"]",
-      "ui_order": 2,
-      "requires_restart": false,
-      "is_sensitive": false,
-      "is_readonly": false,
-      "updated_at": "2025-08-18 00:00:00",
-      "updated_by": "admin-api"
-    },
-    {
-      "id": 622,
-      "parameter_name": "duplicate_action",
-      "parameter_value": "link",
-      "default_value": "link",
-      "parameter_type": "string",
-      "display_name": "Поведение при дубликате",
-      "description": "skip | link | version",
-      "help_text": "По умолчанию: link",
-      "ui_component": "select",
-      "ui_options": "[\"skip\",\"link\",\"version\"]",
-      "ui_order": 3,
-      "requires_restart": false,
-      "is_sensitive": false,
-      "is_readonly": false,
-      "updated_at": "2025-08-18 00:00:00",
-      "updated_by": "admin-api"
-    }
-  ],
   "Retrieval_Settings": [
     {
       "id": 478,

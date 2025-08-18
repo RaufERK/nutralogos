@@ -1,4 +1,4 @@
-import { llm, createLLM } from './llm'
+import { createLLM } from './llm'
 import { createRetriever } from './vectorstore'
 import { createDynamicPrompt, formatEnhancedContextForPrompt } from './prompts'
 import { RAGSettings } from '@/lib/settings-service'
@@ -36,7 +36,8 @@ export async function createSpiritualRAGChain() {
         })
 
         // 4. Get LLM response
-        const response = await llm.invoke(formattedPrompt)
+        const instance = await createLLM()
+        const response = await instance.invoke(formattedPrompt)
 
         return {
           text: response.content,
@@ -157,7 +158,9 @@ export class EnhancedSpiritualRAGChain {
     } catch (error) {
       console.error('❌ Enhanced RAG Chain Error:', error)
       throw new Error(
-        `RAG processing failed: ${error instanceof Error ? error.message : String(error)}`
+        `RAG processing failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`
       )
     }
   }
@@ -209,7 +212,8 @@ export class EnhancedSpiritualRAGChain {
     const rankedDocs = documents.map((doc) => {
       const content = (doc.pageContent || '').toLowerCase()
       const metaScore =
-        doc.metadata && typeof (doc.metadata as Record<string, unknown>).score === 'number'
+        doc.metadata &&
+        typeof (doc.metadata as Record<string, unknown>).score === 'number'
           ? ((doc.metadata as Record<string, unknown>).score as number)
           : 0.5
       let relevanceScore: number = metaScore

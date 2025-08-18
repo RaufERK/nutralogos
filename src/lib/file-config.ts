@@ -28,6 +28,7 @@ function getSettingSync(name: string, fallback: number): number {
 const CHUNK_SIZE_DB = getSettingSync('chunk_size', 3000)
 const CHUNK_OVERLAP_DB = getSettingSync('chunk_overlap', 600)
 const MAX_FILE_SIZE_MB_DB = getSettingSync('max_file_size_mb', 50)
+const MAX_CHUNKS_PER_FILE_DB = getSettingSync('max_chunks_per_file', 50)
 
 export const FILE_CONFIG = {
   // Пути
@@ -69,7 +70,7 @@ export const FILE_CONFIG = {
   MAX_FILENAME_LENGTH: 255,
 
   // Новые ограничения - ОПТИМИЗИРОВАНЫ для больших чанков
-  MAX_CHUNKS_PER_FILE: 50, // Максимум чанков на файл (увеличено)
+  MAX_CHUNKS_PER_FILE: Math.max(1, Math.floor(MAX_CHUNKS_PER_FILE_DB)),
   MAX_TEXT_LENGTH: 200000, // Максимум символов в тексте (увеличено для больших файлов)
 } as const
 

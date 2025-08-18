@@ -52,12 +52,17 @@ export class FileProcessor {
       const fileName = path.basename(filePath)
 
       // Получаем подходящий процессор
-      const processor = documentProcessorFactory.getProcessor(fileName, mimeType)
+      const processor = documentProcessorFactory.getProcessor(
+        fileName,
+        mimeType
+      )
       if (!processor) {
         throw new Error(`Неподдерживаемый тип файла: ${mimeType} (${fileName})`)
       }
 
-      console.log(`[FileProcessor] Используем процессор: ${processor.constructor.name}`)
+      console.log(
+        `[FileProcessor] Используем процессор: ${processor.constructor.name}`
+      )
 
       // Валидируем файл
       if (!processor.validateFile(dataBuffer)) {
@@ -72,11 +77,15 @@ export class FileProcessor {
         throw new Error(`Файл не содержит текстового содержимого: ${fileName}`)
       }
 
-      console.log(`[FileProcessor] Текст извлечен, длина: ${extractedText.length} символов`)
+      console.log(
+        `[FileProcessor] Текст извлечен, длина: ${extractedText.length} символов`
+      )
 
       // Очищаем текст
       const cleanText = TextSplitter.cleanText(extractedText)
-      console.log(`[FileProcessor] Текст очищен, длина: ${cleanText.length} символов`)
+      console.log(
+        `[FileProcessor] Текст очищен, длина: ${cleanText.length} символов`
+      )
 
       // Разбиваем на чанки
       const chunks = TextSplitter.smartSplit(cleanText)
@@ -120,7 +129,8 @@ export class FileProcessor {
     const extensions: Record<string, string> = {
       'application/pdf': '.pdf',
       'text/plain': '.txt',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        '.docx',
       'application/msword': '.doc',
       'application/epub+zip': '.epub',
       'application/x-fictionbook+xml': '.fb2',
@@ -147,17 +157,28 @@ export class FileProcessor {
       }
 
       if (stats.size > FILE_CONFIG.MAX_FILE_SIZE) {
-        return { valid: false, error: `Файл слишком большой. Максимальный размер: ${FILE_CONFIG.MAX_FILE_SIZE / 1024 / 1024}MB` }
+        return {
+          valid: false,
+          error: `Файл слишком большой. Максимальный размер: ${
+            FILE_CONFIG.MAX_FILE_SIZE / 1024 / 1024
+          }MB`,
+        }
       }
 
       // Читаем первые байты для валидации
       const buffer = fsSync.readFileSync(filePath)
       const fileName = path.basename(filePath)
-      
+
       // Получаем процессор для валидации
-      const processor = documentProcessorFactory.getProcessor(fileName, mimeType)
+      const processor = documentProcessorFactory.getProcessor(
+        fileName,
+        mimeType
+      )
       if (!processor) {
-        return { valid: false, error: `Неподдерживаемый тип файла: ${mimeType}` }
+        return {
+          valid: false,
+          error: `Неподдерживаемый тип файла: ${mimeType}`,
+        }
       }
 
       // Валидируем файл через процессор
@@ -166,7 +187,7 @@ export class FileProcessor {
       }
 
       return { valid: true }
-    } catch (error) {
+    } catch {
       return { valid: false, error: 'Ошибка валидации файла' }
     }
   }

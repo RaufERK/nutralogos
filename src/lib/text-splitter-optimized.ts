@@ -67,10 +67,6 @@ export class OptimizedTextSplitter {
       'chunk_size',
       1000
     )
-    const defaultChunkOverlap = await SettingsService.getSettingValue(
-      'chunk_overlap',
-      200
-    )
     const defaultPreserveStructure = await SettingsService.getSettingValue(
       'preserve_text_structure',
       true
@@ -78,7 +74,6 @@ export class OptimizedTextSplitter {
 
     const {
       chunkSize = defaultChunkSize, // Из настроек chunk_size
-      chunkOverlap = defaultChunkOverlap, // Из настроек chunk_overlap
       preserveStructure = defaultPreserveStructure, // Из настроек preserve_text_structure
     } = options
 
@@ -95,9 +90,9 @@ export class OptimizedTextSplitter {
     // const chunks: TextChunk[] = []
 
     if (preserveStructure) {
-      return this.splitWithStructurePreservation(text, chunkSize, chunkOverlap)
+      return this.splitWithStructurePreservation(text, chunkSize)
     } else {
-      return this.splitByTokens(text, chunkSize, chunkOverlap)
+      return this.splitByTokens(text, chunkSize)
     }
   }
 
@@ -106,8 +101,7 @@ export class OptimizedTextSplitter {
    */
   private static splitWithStructurePreservation(
     text: string,
-    chunkSize: number,
-    chunkOverlap: number
+    chunkSize: number
   ): TextChunk[] {
     const chunks: TextChunk[] = []
 
@@ -137,11 +131,7 @@ export class OptimizedTextSplitter {
         }
 
         // Разбиваем большой абзац
-        const sentenceChunks = this.splitLargeParagraph(
-          paragraph,
-          chunkSize,
-          chunkOverlap
-        )
+        const sentenceChunks = this.splitLargeParagraph(paragraph, chunkSize)
         sentenceChunks.forEach((chunk) => {
           chunks.push({
             ...chunk,
@@ -208,8 +198,7 @@ export class OptimizedTextSplitter {
    */
   private static splitLargeParagraph(
     paragraph: string,
-    chunkSize: number,
-    _chunkOverlap: number
+    chunkSize: number
   ): TextChunk[] {
     const chunks: TextChunk[] = []
     const sentences = paragraph
@@ -262,11 +251,7 @@ export class OptimizedTextSplitter {
   /**
    * Простая разбивка по токенам без сохранения структуры
    */
-  private static splitByTokens(
-    text: string,
-    chunkSize: number,
-    _chunkOverlap: number
-  ): TextChunk[] {
+  private static splitByTokens(text: string, chunkSize: number): TextChunk[] {
     const chunks: TextChunk[] = []
     const words = text.split(/\s+/)
 

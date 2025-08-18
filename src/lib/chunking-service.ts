@@ -13,23 +13,19 @@ export class ChunkingService {
    */
   static async getChunkingOptions(): Promise<ChunkingOptions> {
     try {
-      const [chunkSizeTokens, chunkOverlapTokens, preserveStructure] =
-        await Promise.all([
-          SettingsService.getSetting('CHUNK_SIZE_TOKENS'),
-          SettingsService.getSetting('CHUNK_OVERLAP_TOKENS'),
-          SettingsService.getSetting('PRESERVE_STRUCTURE'),
-        ])
+      const [chunkSize, chunkOverlap, preserveStructure] = await Promise.all([
+        SettingsService.getSettingValue<number>('chunk_size', 1000),
+        SettingsService.getSettingValue<number>('chunk_overlap', 200),
+        SettingsService.getSettingValue<boolean>(
+          'preserve_text_structure',
+          true
+        ),
+      ])
 
       return {
-        chunkSize: chunkSizeTokens
-          ? parseInt(chunkSizeTokens.parameter_value)
-          : 1000,
-        chunkOverlap: chunkOverlapTokens
-          ? parseInt(chunkOverlapTokens.parameter_value)
-          : 200,
-        preserveStructure: preserveStructure
-          ? preserveStructure.parameter_value === 'true'
-          : true,
+        chunkSize,
+        chunkOverlap,
+        preserveStructure,
       }
     } catch (error) {
       console.warn(

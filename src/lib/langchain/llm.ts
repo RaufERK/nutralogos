@@ -27,15 +27,7 @@ export async function createLLM(): Promise<ChatOpenAI> {
  * Note: This uses default values, use createLLM() for dynamic settings
  * WARNING: This instance uses hardcoded values - prefer createLLM() for dynamic settings
  */
-export const llm = new ChatOpenAI({
-  openAIApiKey: process.env.OPENAI_API_KEY!,
-  modelName: 'gpt-4o', // HARDCODED - use createLLM() instead
-  temperature: 0.4, // HARDCODED - use createLLM() instead
-  maxTokens: 4000, // HARDCODED - use createLLM() instead
-  topP: 1.0,
-  frequencyPenalty: 0.0,
-  presencePenalty: 0.0,
-})
+// Removed hardcoded llm export to avoid divergence from settings
 
 /**
  * Create LLM instance with custom parameters
@@ -103,7 +95,8 @@ export async function createStreamingLLM(
  */
 export async function testLLMConnection(): Promise<boolean> {
   try {
-    const response = await llm.invoke([
+    const instance = await createLLM()
+    const response = await instance.invoke([
       {
         role: 'user',
         content: "Отвечь просто: 'Соединение установлено'",
