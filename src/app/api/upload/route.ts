@@ -22,18 +22,7 @@ export async function POST(request: NextRequest) {
       request as unknown as Request,
       'ip-unknown'
     )
-    const rate = await checkAndIncrementRateLimit({
-      route: '/api/upload',
-      key: ipKey,
-      limit: 10,
-      window: 'hour',
-    })
-    if (!rate.ok) {
-      return NextResponse.json(
-        { error: 'Too many uploads', retry_after_seconds: rate.reset },
-        { status: 429, headers: { 'Retry-After': String(rate.reset) } }
-      )
-    }
+    // Уберём лимит для загрузок на уровне API, оставив лимиты размера/формата
 
     console.log('📤 [UPLOAD STAGE 1] Processing file upload to library')
     const formData = await request.formData()

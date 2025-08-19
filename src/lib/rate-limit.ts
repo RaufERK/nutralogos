@@ -26,55 +26,31 @@ export async function checkAndIncrementRateLimit(options: {
   | { ok: true; remaining: number; reset: number }
   | { ok: false; status: 429; reset: number; message: string }
 > {
-  const db = await getDatabase()
   const now = nowEpochSeconds()
   const windowStart = floorToWindowStart(now, options.window)
 
-  const blocked = isBlocked(db, options.route, options.key)
-  if (blocked) {
-    const { block_until, reason } = blocked
-    const reset = Math.max(0, Math.floor(block_until.getTime() / 1000) - now)
-    return {
-      ok: false,
-      status: 429,
-      reset,
-      message: reason || 'Too many requests. Try again later.',
-    }
-  }
+  const mem = memoryCheckAndIncrement(
+    options.route,
+    options.key,
+    windowStart,
+    options.window,
+    options.limit,
+    options.block
+  )
+  if (!mem.ok) return mem
 
-  const current = upsertAndGetCount(db, options.route, options.key, windowStart)
-
-  if (current > options.limit) {
-    if (options.block && current >= options.block.threshold) {
-      setBlock(
-        db,
-        options.route,
-        options.key,
-        new Date(Date.now() + options.block.durationSec * 1000),
-        options.block.reason || 'Rate limit exceeded'
-      )
-    }
-    const size =
-      options.window === 'minute'
-        ? 60
-        : options.window === 'ten_minutes'
-        ? 600
-        : 3600
-    const reset = windowStart + size - now
-    return { ok: false, status: 429, reset, message: 'Too many requests' }
-  }
+  persistCounterAsync(
+    options.route,
+    options.key,
+    windowStart,
+    mem.current,
+    options.block
+  )
 
   return {
     ok: true,
-    remaining: Math.max(0, options.limit - current),
-    reset:
-      windowStart +
-      (options.window === 'minute'
-        ? 60
-        : options.window === 'ten_minutes'
-        ? 600
-        : 3600) -
-      now,
+    remaining: Math.max(0, options.limit - mem.current),
+    reset: mem.reset,
   }
 }
 
@@ -147,4 +123,71 @@ export function getClientKeyFromRequest(
     if (ip) return String(ip)
   } catch {}
   return fallbackIP
+}
+
+// In-memory fast path to cut SQLite I/O for hot paths
+type BlockRule = { threshold: number; durationSec: number; reason?: string }
+type MemEntry = { count: number; windowStart: number; blockedUntil?: number }
+const memCounters = new Map<string, MemEntry>()
+
+function memKey(route: string, key: string, windowStart: number): string {
+  return `${route}|${key}|${windowStart}`
+}
+
+function windowSizeSeconds(window: WindowSize): number {
+  return window === 'minute' ? 60 : window === 'ten_minutes' ? 600 : 3600
+}
+
+function memoryCheckAndIncrement(
+  route: string,
+  key: string,
+  windowStart: number,
+  window: WindowSize,
+  limit: number,
+  block?: BlockRule
+):
+  | { ok: true; current: number; reset: number }
+  | { ok: false; status: 429; reset: number; message: string } {
+  const size = windowSizeSeconds(window)
+  const reset = windowStart + size - nowEpochSeconds()
+  const k = memKey(route, key, windowStart)
+  const entry = memCounters.get(k) || { count: 0, windowStart }
+  if (entry.blockedUntil && entry.blockedUntil > Date.now()) {
+    return { ok: false, status: 429, reset, message: 'Too many requests' }
+  }
+  entry.count += 1
+  memCounters.set(k, entry)
+  if (entry.count > limit) {
+    if (block && entry.count >= block.threshold) {
+      entry.blockedUntil = Date.now() + block.durationSec * 1000
+      memCounters.set(k, entry)
+    }
+    return { ok: false, status: 429, reset, message: 'Too many requests' }
+  }
+  return { ok: true, current: entry.count, reset }
+}
+
+async function persistCounterAsync(
+  route: string,
+  key: string,
+  windowStart: number,
+  current: number,
+  block?: BlockRule
+): Promise<void> {
+  if (current % 5 !== 0 && current !== 1) return
+  try {
+    const db = await getDatabase()
+    const persisted = upsertAndGetCount(db, route, key, windowStart)
+    if (block && persisted >= block.threshold) {
+      setBlock(
+        db,
+        route,
+        key,
+        new Date(Date.now() + block.durationSec * 1000),
+        block.reason || 'Rate limit exceeded'
+      )
+    }
+  } catch {
+    // ignore
+  }
 }
