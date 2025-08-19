@@ -183,6 +183,26 @@
       "updated_by": "admin-api"
     }
   ],
+  "UI_Preferences": [
+    {
+      "id": 800,
+      "parameter_name": "ui_show_sources",
+      "parameter_value": "false",
+      "default_value": "false",
+      "parameter_type": "boolean",
+      "display_name": "Показывать источники ответа",
+      "description": "Показывать кнопку и список источников под ответом ассистента",
+      "help_text": "Если выключено, блок источников скрыт для всех ответов",
+      "ui_component": "toggle",
+      "ui_options": null,
+      "ui_order": 1,
+      "requires_restart": false,
+      "is_sensitive": false,
+      "is_readonly": false,
+      "updated_at": "2025-08-19 17:45:00",
+      "updated_by": "admin-api"
+    }
+  ],
   "RAG_Embedding_and_Chunking": [
     {
       "id": 486,
