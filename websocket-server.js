@@ -9,6 +9,10 @@ const wss = new WebSocketServer({
   port,
   verifyClient: (info) => {
     const origin = info.origin
+    const isDev = process.env.NODE_ENV !== 'production'
+    if (isDev) {
+      return true
+    }
     const defaultOrigins = [
       'http://localhost:3000',
       'http://127.0.0.1:3000',
@@ -19,14 +23,20 @@ const wss = new WebSocketServer({
       .map((s) => s.trim())
       .filter(Boolean)
     const nextauthUrl = process.env.NEXTAUTH_URL
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
     const allowedOrigins = Array.from(
       new Set([
         ...defaultOrigins,
         ...envOrigins,
         ...(nextauthUrl ? [nextauthUrl] : []),
+        ...(siteUrl ? [siteUrl] : []),
       ])
     )
-    return !origin || allowedOrigins.includes(origin)
+    const ok = !origin || allowedOrigins.includes(origin)
+    if (!ok) {
+      console.warn('❌ WS origin rejected:', origin, 'Allowed:', allowedOrigins)
+    }
+    return ok
   },
 })
 

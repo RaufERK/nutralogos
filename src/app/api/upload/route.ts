@@ -10,9 +10,31 @@ import {
   createFileMetadata,
 } from '@/lib/file-hash-utils'
 import { getDatabase } from '@/lib/database'
+import {
+  checkAndIncrementRateLimit,
+  getClientKeyFromRequest,
+} from '@/lib/rate-limit'
+import { RAGSettings } from '@/lib/settings-service'
 
 export async function POST(request: NextRequest) {
   try {
+    const ipKey = getClientKeyFromRequest(
+      request as unknown as Request,
+      'ip-unknown'
+    )
+    const rate = await checkAndIncrementRateLimit({
+      route: '/api/upload',
+      key: ipKey,
+      limit: 10,
+      window: 'hour',
+    })
+    if (!rate.ok) {
+      return NextResponse.json(
+        { error: 'Too many uploads', retry_after_seconds: rate.reset },
+        { status: 429, headers: { 'Retry-After': String(rate.reset) } }
+      )
+    }
+
     console.log('📤 [UPLOAD STAGE 1] Processing file upload to library')
     const formData = await request.formData()
     const file = formData.get('file') as File
@@ -26,8 +48,8 @@ export async function POST(request: NextRequest) {
       `📁 [UPLOAD] File: ${file.name} (${file.size} bytes, ${file.type})`
     )
 
-    // Validate file size (max 100MB from settings)
-    const maxSizeMB = 100
+    // Validate file size (from settings, fallback 100MB)
+    const maxSizeMB = await RAGSettings.getMaxFileSizeMB().catch(() => 100)
     if (file.size > maxSizeMB * 1024 * 1024) {
       return NextResponse.json(
         { error: `File too large. Max size: ${maxSizeMB}MB` },
@@ -200,3 +222,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const runtime = 'nodejs'

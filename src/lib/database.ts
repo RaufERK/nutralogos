@@ -191,6 +191,32 @@ async function initializeTables() {
     )
   `)
 
+  // Create rate limiting tables
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS rate_limits (
+      route TEXT NOT NULL,
+      key TEXT NOT NULL,
+      window_start INTEGER NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (route, key, window_start)
+    );
+  `)
+
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS rate_blocks (
+      route TEXT NOT NULL,
+      key TEXT NOT NULL,
+      block_until DATETIME NOT NULL,
+      reason TEXT,
+      PRIMARY KEY (route, key)
+    );
+  `)
+
+  database.exec(`
+    CREATE INDEX IF NOT EXISTS idx_rate_limits_key ON rate_limits(key);
+  `)
+
   // Create indexes
   database.exec(`
     CREATE INDEX IF NOT EXISTS idx_system_settings_category ON system_settings(category);

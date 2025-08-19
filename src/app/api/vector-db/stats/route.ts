@@ -149,6 +149,11 @@ export async function GET() {
       } catch {}
     }
 
+    const embeddingModel = await SettingsService.getSettingValue<string>(
+      'embedding_model',
+      process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-large'
+    )
+
     return NextResponse.json({
       success: true,
       qdrant: {
@@ -160,11 +165,14 @@ export async function GET() {
         namedVectors,
         isNamedVectors: !!namedVectors,
         pointsCount,
+        baseUrl: url,
+        isSecure: typeof url === 'string' ? url.startsWith('https://') : false,
       },
       settings: {
         multivectorEnabled,
         multivectorContentWeight: contentWeight,
         multivectorMetaWeight: metaWeight,
+        embeddingModel,
       },
       sqlite,
     })
@@ -178,3 +186,5 @@ export async function GET() {
     )
   }
 }
+
+export const runtime = 'nodejs'

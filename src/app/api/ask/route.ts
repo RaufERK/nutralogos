@@ -3,9 +3,30 @@ import { createEnhancedRAGChain } from '@/lib/langchain/rag-chain'
 import { AskResponse, Document } from '@/lib/types'
 import { SettingsService } from '@/lib/settings-service'
 import { ChatMessage } from '@/lib/chat-context'
+import {
+  checkAndIncrementRateLimit,
+  getClientKeyFromRequest,
+} from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    const ipKey = getClientKeyFromRequest(
+      request as unknown as Request,
+      'ip-unknown'
+    )
+    const rate = await checkAndIncrementRateLimit({
+      route: '/api/ask',
+      key: ipKey,
+      limit: 30,
+      window: 'ten_minutes',
+    })
+    if (!rate.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests', retry_after_seconds: rate.reset },
+        { status: 429, headers: { 'Retry-After': String(rate.reset) } }
+      )
+    }
+
     const body = await request.json()
     const { question, context }: { question: string; context?: ChatMessage[] } =
       body
@@ -133,7 +154,10 @@ ${contextString}
 
     // 3. Convert LangChain documents to our format for compatibility
     const sources: Document[] = ragResult.sourceDocuments.map((doc, index) => ({
-      id: String((doc.metadata as Record<string, unknown> | undefined)?.id ?? `doc_${index}`),
+      id: String(
+        (doc.metadata as Record<string, unknown> | undefined)?.id ??
+          `doc_${index}`
+      ),
       content: doc.content || doc.pageContent || '',
       metadata: {
         ...doc.metadata,
@@ -210,3 +234,5 @@ ${contextString}
     )
   }
 }
+
+export const runtime = 'nodejs'

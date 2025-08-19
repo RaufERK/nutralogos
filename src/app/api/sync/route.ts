@@ -147,6 +147,8 @@ export async function POST() {
   }
 }
 
+export const runtime = 'nodejs'
+
 /**
  * Обрабатывает один файл: парсинг → дедупликация → эмбеддинг
  */

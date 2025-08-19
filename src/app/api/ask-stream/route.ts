@@ -33,7 +33,10 @@ async function sendToClient(
   message: OutboundMessage
 ): Promise<boolean> {
   try {
-    const response = await fetch('http://localhost:3002/send-message', {
+    const httpPort = process.env.WEBSOCKET_HTTP_PORT || '3002'
+    const baseUrl =
+      process.env.WEBSOCKET_HTTP_URL || `http://localhost:${httpPort}`
+    const response = await fetch(`${baseUrl}/send-message`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -215,7 +218,9 @@ ${contextString}
       ])
 
       // Обрабатываем каждый чанк
-      for await (const chunk of stream as AsyncIterable<{ content?: unknown }>) {
+      for await (const chunk of stream as AsyncIterable<{
+        content?: unknown
+      }>) {
         const raw = (chunk as { content?: unknown }).content
         const content =
           typeof raw === 'string'
@@ -316,3 +321,5 @@ ${contextString}
     )
   }
 }
+
+export const runtime = 'nodejs'
