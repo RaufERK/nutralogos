@@ -1,12 +1,12 @@
 import OpenAI from 'openai'
 import { SettingsService } from '@/lib/settings-service'
+import { throttle } from '@/lib/redis'
 
 // Simple in-memory cache for embeddings
 const embeddingCache = new Map<string, number[]>()
 
-// Rate limiting
-let lastRequestTime = 0
-const MIN_REQUEST_INTERVAL = 200 // 200ms between requests
+// Distributed throttling via Redis
+const MIN_REQUEST_INTERVAL = 200
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -45,14 +45,7 @@ export async function getEmbeddingVector(text: string): Promise<number[]> {
       return embeddingCache.get(cacheKey)!
     }
 
-    // Rate limiting
-    const now = Date.now()
-    const timeSinceLastRequest = now - lastRequestTime
-    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-      const delay = MIN_REQUEST_INTERVAL - timeSinceLastRequest
-      console.log(`⏱️ [EMBEDDINGS] Rate limiting: waiting ${delay}ms`)
-      await new Promise((resolve) => setTimeout(resolve, delay))
-    }
+    await throttle('openai:embeddings:single', MIN_REQUEST_INTERVAL)
 
     console.log('🔗 [EMBEDDINGS] Getting embedding for text')
 
@@ -61,7 +54,6 @@ export async function getEmbeddingVector(text: string): Promise<number[]> {
       input: text,
     })
 
-    lastRequestTime = Date.now()
     const result = response.data[0].embedding
 
     // Cache the result
@@ -131,9 +123,9 @@ export async function getEmbeddingVectors(
         }/${Math.ceil(texts.length / batchSize)} (${batch.length} texts)`
       )
 
-      // Rate limiting between batches
+      // Distributed throttle between batches
       if (i > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 500)) // 500ms delay between batches
+        await throttle('openai:embeddings:batch', 500)
       }
 
       const response = await openai.embeddings.create({
