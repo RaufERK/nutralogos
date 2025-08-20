@@ -429,24 +429,6 @@ export default function Home() {
                         </div>
                         <div className='flex items-center gap-3'>
                           <h3 className='text-white font-medium'>Ответ:</h3>
-                          {/* Copy button */}
-                          {message.answer && (
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await navigator.clipboard.writeText(
-                                    (message.answer || '')
-                                      .replace(/\n{2,}/g, '\n')
-                                      .trim()
-                                  )
-                                } catch {}
-                              }}
-                              className='px-2 py-1 text-xs bg-gray-700 border border-gray-500 rounded text-gray-200 hover:bg-gray-600 active:bg-gray-700'
-                              title='Скопировать ответ'
-                            >
-                              Скопировать
-                            </button>
-                          )}
                           {isLoading && !message.answer && (
                             <div className='flex items-center gap-2 text-xs text-blue-400'>
                               <div className='w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin'></div>
@@ -489,71 +471,112 @@ export default function Home() {
                       )}
                     </div>
 
-                    {/* Collapsible Sources (controlled by setting) */}
-                    {uiShowSources &&
-                      message.hasContext &&
-                      message.sources.length > 0 && (
-                        <div className='mt-2 pt-2 border-t border-gray-700/60'>
+                    {/* Actions row: show only when answer is complete */}
+                    {message.answer &&
+                      message.answer !== 'Печатаю ответ...' && (
+                        <div className='mt-3 pt-3 border-t border-gray-700/60 flex items-center justify-between'>
                           <button
-                            onClick={() => toggleSourceCollapse(message.id)}
-                            className='flex items-center gap-1.5 text-xs text-blue-400 mb-2 hover:text-blue-300 transition-colors'
+                            onClick={() => {
+                              if (!uiShowSources) return
+                              if (message.sources.length === 0) return
+                              toggleSourceCollapse(message.id)
+                            }}
+                            disabled={
+                              !uiShowSources || message.sources.length === 0
+                            }
+                            className={`flex items-center gap-1.5 text-xs mb-0 transition-colors font-semibold ${
+                              !uiShowSources || message.sources.length === 0
+                                ? 'text-gray-500 cursor-not-allowed'
+                                : 'text-blue-400 hover:text-blue-300'
+                            }`}
+                            title={
+                              !uiShowSources
+                                ? 'Показ источников отключён в настройках'
+                                : message.sources.length === 0
+                                ? 'Источников нет'
+                                : 'Показать источники'
+                            }
                           >
                             <span aria-hidden='true'>📚</span>
-                            <span>Источники ({message.sources.length})</span>
-                            <svg
-                              className={`w-3 h-3 transition-transform ${
-                                !collapsedSources.has(message.id)
-                                  ? 'rotate-180'
-                                  : ''
-                              }`}
-                              fill='none'
-                              stroke='currentColor'
-                              viewBox='0 0 24 24'
-                            >
-                              <path
-                                strokeLinecap='round'
-                                strokeLinejoin='round'
-                                strokeWidth={2}
-                                d='M19 9l-7 7-7-7'
-                              />
-                            </svg>
+                            <span>
+                              Источники (
+                              {message.sourcesCount ?? message.sources.length})
+                            </span>
+                            {uiShowSources && message.sources.length > 0 && (
+                              <svg
+                                className={`w-3 h-3 transition-transform ${
+                                  !collapsedSources.has(message.id)
+                                    ? 'rotate-180'
+                                    : ''
+                                }`}
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                              >
+                                <path
+                                  strokeLinecap='round'
+                                  strokeLinejoin='round'
+                                  strokeWidth={2}
+                                  d='M19 9l-7 7-7-7'
+                                />
+                              </svg>
+                            )}
                           </button>
 
-                          {!collapsedSources.has(message.id) && (
-                            <div className='space-y-1.5'>
-                              {message.sources.map((source) => (
-                                <div
-                                  key={source.id}
-                                  className='text-xs text-gray-400'
-                                >
-                                  <div className='flex items-start gap-2'>
-                                    <span className='mt-1 text-gray-500'>
-                                      •
-                                    </span>
-                                    <div className='flex-1'>
-                                      <p className='leading-relaxed'>
-                                        {source.content}
-                                      </p>
-                                      {source.metadata && (
-                                        <div className='mt-1.5 flex gap-1.5'>
-                                          {source.metadata.category && (
-                                            <span className='px-1.5 py-0.5 bg-blue-600/10 text-blue-300 text-[10px] rounded border border-blue-600/30'>
-                                              {source.metadata.category}
-                                            </span>
-                                          )}
-                                          {source.metadata.topic && (
-                                            <span className='px-1.5 py-0.5 bg-green-600/10 text-green-300 text-[10px] rounded border border-green-600/30'>
-                                              {source.metadata.topic}
-                                            </span>
-                                          )}
-                                        </div>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(
+                                  (message.answer || '')
+                                    .replace(/\n{2,}/g, '\n')
+                                    .trim()
+                                )
+                              } catch {}
+                            }}
+                            className='text-xs text-blue-400 hover:text-blue-300 font-semibold transition-colors'
+                            title='Скопировать ответ'
+                          >
+                            Скопировать
+                          </button>
+                        </div>
+                      )}
+
+                    {/* Sources list (only when enabled and answer is complete) */}
+                    {message.answer &&
+                      message.answer !== 'Печатаю ответ...' &&
+                      uiShowSources &&
+                      message.sources.length > 0 &&
+                      !collapsedSources.has(message.id) && (
+                        <div className='mt-2 space-y-1.5'>
+                          {message.sources.map((source) => (
+                            <div
+                              key={source.id}
+                              className='text-xs text-gray-400'
+                            >
+                              <div className='flex items-start gap-2'>
+                                <span className='mt-1 text-gray-500'>•</span>
+                                <div className='flex-1'>
+                                  <p className='leading-relaxed'>
+                                    {source.content}
+                                  </p>
+                                  {source.metadata && (
+                                    <div className='mt-1.5 flex gap-1.5'>
+                                      {source.metadata.category && (
+                                        <span className='px-1.5 py-0.5 bg-blue-600/10 text-blue-300 text-[10px] rounded border border-blue-600/30'>
+                                          {source.metadata.category}
+                                        </span>
+                                      )}
+                                      {source.metadata.topic && (
+                                        <span className='px-1.5 py-0.5 bg-green-600/10 text-green-300 text-[10px] rounded border border-green-600/30'>
+                                          {source.metadata.topic}
+                                        </span>
                                       )}
                                     </div>
-                                  </div>
+                                  )}
                                 </div>
-                              ))}
+                              </div>
                             </div>
-                          )}
+                          ))}
                         </div>
                       )}
                   </div>
