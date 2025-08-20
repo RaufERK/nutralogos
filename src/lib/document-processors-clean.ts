@@ -80,7 +80,26 @@ export class PDFProcessor implements DocumentProcessor {
       const tmpDir = await fs.mkdtemp(pathMod.join(os.tmpdir(), 'pdfx-'))
       tempFile = pathMod.join(tmpDir, 'input.pdf')
       await fs.writeFile(tempFile, buffer)
-      const text = await extractWithPath(tempFile)
+      let text = ''
+      try {
+        text = await extractWithPath(tempFile)
+      } catch {}
+
+      if (!text || !text.trim()) {
+        try {
+          const pdfParse = await import('pdf-parse')
+          const pdfParseDefault = (pdfParse as unknown as { default?: unknown })
+            .default
+          const parse = (pdfParseDefault ?? (pdfParse as unknown)) as (
+            dataBuffer: Buffer
+          ) => Promise<{ text: string }>
+          const res = await parse(buffer)
+          text = normalize(res.text || '')
+        } catch (e) {
+          // keep text as is; will fail below if still empty
+        }
+      }
+
       return text
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error)
