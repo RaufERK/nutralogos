@@ -25,13 +25,13 @@ export async function middleware(request: NextRequest) {
     : {}
 
   // Проверяем админские роуты
-  if (pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/moderator')) {
     // Если пользователь уже на странице логина - пропускаем
-    if (pathname === '/admin/login') {
+    if (pathname === '/moderator/login') {
       // Если авторизован - редирект в админку
       const role = (session?.user as { role?: string } | undefined)?.role
       if (role === 'admin') {
-        return NextResponse.redirect(new URL('/admin', request.url))
+        return NextResponse.redirect(new URL('/moderator', request.url))
       }
       // Если не авторизован - показываем страницу логина
       const resp = NextResponse.next()
@@ -42,7 +42,7 @@ export async function middleware(request: NextRequest) {
     // Для всех остальных админских страниц - проверяем авторизацию
     const userRole = (session?.user as { role?: string } | undefined)?.role
     if (!session?.user || userRole !== 'admin') {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
+      return NextResponse.redirect(new URL('/moderator/login', request.url))
     }
   }
 
@@ -53,7 +53,7 @@ export async function middleware(request: NextRequest) {
 
   // Защита сервисных/админских API
   const isProtectedApi =
-    pathname.startsWith('/api/admin') ||
+    pathname.startsWith('/api/moderator') ||
     pathname.startsWith('/api/vector-db') ||
     pathname.startsWith('/api/upload') ||
     pathname === '/api/sync' ||
@@ -74,5 +74,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/:path*'],
+  matcher: ['/moderator/:path*', '/api/:path*'],
 }

@@ -25,7 +25,7 @@ export default async function VectorDBPage() {
           <p className='text-gray-400'>Состояние Qdrant и библиотеки</p>
         </div>
         <Link
-          href='/admin'
+          href='/moderator'
           className='px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors'
         >
           Назад к дашборду

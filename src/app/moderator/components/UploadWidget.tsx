@@ -219,7 +219,7 @@ export default function UploadPage({
             </p>
           </div>
           <Link
-            href='/admin'
+          href='/moderator'
             className={
               variant === 'compact'
                 ? 'px-3 py-1.5 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm'

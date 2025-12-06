@@ -127,7 +127,7 @@ export default function AdminDashboardClient() {
             value: stats?.totalFiles ?? 0,
             icon: '📚',
             color: 'bg-blue-500',
-            href: '/admin/files',
+            href: '/moderator/files',
             description: 'Уникальных файлов',
           },
           {
@@ -135,7 +135,7 @@ export default function AdminDashboardClient() {
             value: stats?.library.embedded ?? 0,
             icon: '🧠',
             color: 'bg-green-500',
-            href: '/admin/files',
+            href: '/moderator/files',
             description: 'Доступны для поиска',
           },
           {
@@ -145,7 +145,7 @@ export default function AdminDashboardClient() {
             color: (stats?.syncNeeded
               ? 'bg-orange-500'
               : 'bg-gray-500') as string,
-            href: '/admin/files',
+            href: '/moderator/files',
             description: 'Новые файлы',
           },
           {
@@ -155,7 +155,7 @@ export default function AdminDashboardClient() {
             )} MB`,
             icon: '💾',
             color: 'bg-purple-500',
-            href: '/admin/files',
+            href: '/moderator/files',
             description: 'Дисковое пространство',
           },
         ].map((card) => (

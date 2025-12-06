@@ -77,7 +77,7 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
           </p>
         </div>
         <Link
-          href='/admin'
+          href='/moderator'
           className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
         >
           Загрузить новый файл
@@ -191,7 +191,7 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
             <div className='text-6xl mb-4'>📁</div>
             <p className='text-gray-400 mb-4'>Файлы не обработаны</p>
             <Link
-              href='/admin'
+              href='/moderator'
               className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
             >
               Загрузить первый файл
@@ -285,7 +285,7 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
             <div className='flex items-center space-x-2'>
               {currentPage > 1 && (
                 <Link
-                  href={`/admin/files?page=${currentPage - 1}${
+                  href={`/moderator/files?page=${currentPage - 1}${
                     statusFilter !== 'all' ? `&status=${statusFilter}` : ''
                   }`}
                   className='px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors'
@@ -302,7 +302,7 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
                 return (
                   <Link
                     key={pageNum}
-                    href={`/admin/files?page=${pageNum}${
+                    href={`/moderator/files?page=${pageNum}${
                       statusFilter !== 'all' ? `&status=${statusFilter}` : ''
                     }`}
                     className={`px-3 py-2 rounded-md transition-colors ${
@@ -318,7 +318,7 @@ export default async function FilesPage({ searchParams }: FilesPageProps) {
 
               {currentPage < pages && (
                 <Link
-                  href={`/admin/files?page=${currentPage + 1}${
+                  href={`/moderator/files?page=${currentPage + 1}${
                     statusFilter !== 'all' ? `&status=${statusFilter}` : ''
                   }`}
                   className='px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors'

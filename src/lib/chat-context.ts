@@ -195,7 +195,7 @@ export class ChatContextService {
     }
 
     try {
-      const response = await fetch('/api/admin/settings')
+      const response = await fetch('/api/moderator/settings')
       if (!response.ok) {
         throw new Error('Failed to fetch settings')
       }

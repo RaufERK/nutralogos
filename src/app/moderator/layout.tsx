@@ -13,10 +13,10 @@ export default async function AdminLayout({
 
   const navigationItems = [
     { title: 'Чат', href: '/', icon: '💬' },
-    { title: 'Библиотека знаний', href: '/admin', icon: '📚' },
-    { title: 'Управление файлами', href: '/admin/files', icon: '📁' },
-    { title: 'Векторная БД', href: '/admin/vector-db', icon: '🗄️' },
-    { title: 'Настройки системы', href: '/admin/settings', icon: '⚙️' },
+    { title: 'Библиотека знаний', href: '/moderator', icon: '📚' },
+    { title: 'Управление файлами', href: '/moderator/files', icon: '📁' },
+    { title: 'Векторная БД', href: '/moderator/vector-db', icon: '🗄️' },
+    { title: 'Настройки системы', href: '/moderator/settings', icon: '⚙️' },
   ]
 
   return (

@@ -30,7 +30,7 @@ export default function SettingsPage() {
 
   const loadSettings = async () => {
     try {
-      const response = await fetch('/api/admin/settings')
+      const response = await fetch('/api/moderator/settings')
       if (!response.ok) {
         throw new Error('Failed to load settings')
       }
@@ -68,7 +68,7 @@ export default function SettingsPage() {
     setMessage(null)
 
     try {
-      const response = await fetch('/api/admin/settings', {
+      const response = await fetch('/api/moderator/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ export default function SettingsPage() {
     setResetting(true)
     setMessage(null)
     try {
-      const res = await fetch('/api/admin/settings/reset', { method: 'POST' })
+      const res = await fetch('/api/moderator/settings/reset', { method: 'POST' })
       const data = await res.json().catch(() => ({}))
       if (!res.ok || data?.success === false) {
         throw new Error(data?.error || 'Failed to reset settings')
@@ -395,7 +395,7 @@ export default function SettingsPage() {
               setSyncing(true)
               setMessage(null)
               try {
-                const res = await fetch('/api/admin/settings/sync', {
+                const res = await fetch('/api/moderator/settings/sync', {
                   method: 'POST',
                 })
                 const data = await res.json().catch(() => ({}))

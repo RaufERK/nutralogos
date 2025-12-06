@@ -17,7 +17,7 @@ export default function LoginPage() {
   useEffect(() => {
     const userRole = (session?.user as { role?: string } | undefined)?.role
     if (status === 'authenticated' && userRole === 'admin') {
-      router.push('/admin')
+      router.push('/moderator')
     }
   }, [session, status, router])
 
@@ -36,7 +36,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Неверный email или пароль')
       } else if (result?.ok) {
-        router.push('/admin')
+        router.push('/moderator')
       }
     } catch {
       setError('Ошибка соединения')

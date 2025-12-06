@@ -27,7 +27,7 @@ export default function StatusFilter({
 
     params.set('page', '1') // Reset to first page when filtering
 
-    router.push(`/admin/files?${params.toString()}`)
+    router.push(`/moderator/files?${params.toString()}`)
   }
 
   return (
