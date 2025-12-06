@@ -30,3 +30,4 @@
 - Настройки и контекст чата берутся через `/api/moderator/settings`, кэшируются в `chat-context`.
 - WebSocket сервер поднимается отдельно (`npm run dev` запускает Next + ws).
 
+
