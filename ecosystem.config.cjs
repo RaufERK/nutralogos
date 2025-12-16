@@ -42,6 +42,7 @@ module.exports = {
         'ln -sf /home/appuser/shared/nutralogos/.env.production ./.env.production || true',
         'npm ci --include=dev',
         'npm run build',
+        'npx pm2 update',
         'npx pm2 startOrReload ecosystem.config.cjs --env production',
         'npx pm2 save',
       ].join(' && '),
