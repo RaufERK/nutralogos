@@ -34,7 +34,7 @@ module.exports = {
       user: 'appuser',
       host: 'amster_app',
       ref: 'origin/main',
-      repo: 'git@github.com:RaufERK/nutralogos.git',
+      repo: 'https://github.com/RaufERK/nutralogos.git',
       path: '/home/appuser/apps/nutralogos',
       'pre-deploy-local': '',
       'post-deploy': [
