@@ -32,7 +32,7 @@
     "@langchain/qdrant": "^0.1.2",
     "@qdrant/js-client-rest": "^1.15.0",
     "@types/ws": "^8.18.1",
-    "better-sqlite3": "^10.1.0",
+    "better-sqlite3": "^11.10.0",
     "concurrently": "^9.2.0",
     "dotenv": "^16.4.5",
     "form-data": "^4.0.4",
